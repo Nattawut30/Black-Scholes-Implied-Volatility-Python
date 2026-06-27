@@ -2,13 +2,34 @@ name: Keep Streamlit App Alive
 
 on:
   schedule:
-    - cron: '0 0 */2 * *' # Every 2 days
-  workflow_dispatch:      # Manually test.
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Simulate Real User Visit
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
         run: |
-          curl -sA "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" https://nattawut-blsc.streamlit.app/
+          npm init -y
+          npm install playwright
+          npx playwright install chromium --with-deps
+
+      - name: Visit Streamlit App
+        run: |
+          node -e "
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            await page.goto('https://nattawut-blsc.streamlit.app/');
+            await page.waitForTimeout(15000);
+            await browser.close();
+            console.log('App visited successfully.');
+          })();
+          "

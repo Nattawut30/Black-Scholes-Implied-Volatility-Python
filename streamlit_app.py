@@ -8,13 +8,9 @@ GitHub: https://github.com/Nattawut30
 Email: nattawut.boonnoon@hotmail.com
 Location: Bangkok, Thailand
 
-I almost cried just to make this project work perfectly.
-
 I dedicate this project to all my mentors who taught me well.
 
-Thank you for believing in me...
-
-Thank you for everything!
+Thank you!
 
 
 """
@@ -42,7 +38,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS make it cooler
+# Custom CSS
 st.markdown("""
     <style>
     .main-header {
@@ -157,7 +153,7 @@ def get_recommendation(stock_price, strike_price, call_price, put_price, call_in
     
     recommendations = []
     
-    # Call recommendation because im so bored
+    # Call
     if moneyness > 1.1:
         recommendations.append("**CALL is Deep ITM** - Consider if you expect continued upward movement")
     elif moneyness > 1.02:
@@ -167,7 +163,7 @@ def get_recommendation(stock_price, strike_price, call_price, put_price, call_in
     else:
         recommendations.append("**CALL is OTM** - Lower cost but requires significant price increase")
     
-    # Put recommendation
+    # Put
     if moneyness < 0.9:
         recommendations.append("**PUT is Deep ITM** - Consider if you expect continued downward movement")
     elif moneyness < 0.98:
@@ -357,12 +353,12 @@ if calculate_btn or 'results' in st.session_state:
         
     except Exception as e:
         st.error(f"Calculation Error: {str(e)}")
-        st.stop()
 
 # DISPLAY RESULTS
 if 'results' in st.session_state:
     results = st.session_state.results
     params = st.session_state.params
+    greeks = results['greeks']
     
     # OPTION PRICES - SIDE BY SIDE
     st.markdown("## Option Prices")
@@ -798,7 +794,7 @@ if 'results' in st.session_state:
         else:
             st.info("No calculations in history yet. Run a calculation to see it here.")
 
-# JUST FOOTER END GAME hehe!
+# FOOTER END GAME 
 st.markdown("---")
 st.markdown("""
     <div style='text-align: center; color: #666; padding: 2rem 0;'>

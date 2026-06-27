@@ -24,8 +24,6 @@ from scipy.stats import norm
 from scipy.optimize import brentq
 import warnings
 
-warnings.filterwarnings('ignore')
-
 
 class OptionsPricingModel:
     """
@@ -328,13 +326,15 @@ def calculate_implied_volatility(market_price, stock_price, strike_price,
                 return model.call_price() - market_price
             else:
                 return model.put_price() - market_price
-        except:
+        except Exception:
             return float('inf')
     
     try:
         # Use Brent's method for robust root finding
         # Search between 0.1% and 300% volatility
-        iv = brentq(objective_function, 0.001, 3.0, maxiter=100)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            iv = brentq(objective_function, 0.001, 3.0, maxiter=100)
         return round(iv, 4)
     except:
         # If optimization fails, return None, alright?
@@ -372,39 +372,6 @@ def calculate_historical_volatility(price_series, periods=252):
     
     except Exception as e:
         raise ValueError(f"Error calculating historical volatility: {str(e)}")
-
-
-def option_strategy_payoff(strategy_type, stock_price_range, strike_prices, 
-                          premiums, positions):
-    """
-    Calculate payoff for common option strategies
-    
-    Parameters:
-    -----------
-    strategy_type : str
-        'long_call', 'long_put', 'covered_call', 'straddle', 'strangle', etc.
-    stock_price_range : array
-        Range of stock prices to evaluate
-    strike_prices : list
-        Strike prices for each leg
-    premiums : list
-        Option premiums for each leg
-    positions : list
-        Position sizes (positive for long, negative for short)
-    
-    Returns:
-    --------
-    array : Payoff at each stock price
-    """
-    payoff = np.zeros_like(stock_price_range)
-    
-    for i, (K, premium, pos) in enumerate(zip(strike_prices, premiums, positions)):
-        if pos > 0:  # Long position
-            payoff += pos * (np.maximum(stock_price_range - K, 0) - premium)
-        else:  # Short position
-            payoff += pos * (np.maximum(stock_price_range - K, 0) - premium)
-    
-    return payoff
 
 
 # Convenience function for quick calculations

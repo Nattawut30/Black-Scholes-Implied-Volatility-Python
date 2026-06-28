@@ -852,14 +852,14 @@ st.markdown("""
         <p style='font-size: 0.9em; margin-top: 1rem;'>
             Created by <b>Nattawut Boonnoon</b><br>
             <a href="https://www.linkedin.com/in/nattawut-bn" target="_blank" style="color: #0077b5; text-decoration: none;">
-                🔗 LinkedIn Profile
+                🔗 LinkedIn Profile (Click)
             </a> • 
-            <a href="https://github.com/Nattawut30" target="_blank" style="color: #333; text-decoration: none;">
-                💻 GitHub
+            <a href="https://github.com/Nattawut30" target="_blank" style="color: #0077b5; text-decoration: none;">
+                💻 GitHub Profile (Click)
             </a>
         </p>
         <p style='font-size: 0.8em; color: #999; margin-top: 1rem;'>
-            ** For quantitative analysis and hedging strategy. **
+            *** For quantitative analysis and hedging strategy. ***
         </p>
     </div>
 """, unsafe_allow_html=True)

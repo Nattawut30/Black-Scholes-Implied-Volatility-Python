@@ -430,7 +430,7 @@ if 'results' in st.session_state:
     for rec in recommendations:
         st.markdown(f'<div class="info-box">{rec}</div>', unsafe_allow_html=True)
     
-    st.markdown('<div class="warning-box"><b>Disclaimer:</b> These are analytical insights based on current market conditions. Not financial advice. Always consult professionals before trading.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="warning-box"><b>Disclaimer:</b>These are analytical insights based on current market conditions.</div>', unsafe_allow_html=True)
     
     st.markdown("---")
     

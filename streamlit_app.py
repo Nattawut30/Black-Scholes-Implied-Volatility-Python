@@ -702,30 +702,30 @@ if 'results' in st.session_state:
     with tab4:
     st.markdown("### Advanced Analysis Tools")
 
-    with st.expander("What is the Volatility Smile? — Why the surface is never flat"):
-        st.markdown("""
-        **Black-Scholes assumes constant volatility** across all strikes and maturities. The market disagrees.
-
-        When you back out implied volatility from real market prices across different strikes,
-        you get a U-shaped curve — not a flat line:
-
-        - **Deep ITM options** → Higher IV
-        - **ATM options** → Lowest IV
-        - **Deep OTM options** → Higher IV
-
-        This curvature is the **volatility smile**. For equity indices like the S&P 500,
-        it becomes a **volatility skew** — downside strikes carry systematically higher IV
-        because traders pay a premium for crash protection.
-
-        **What this means practically:**
-        The 3D surface below shows IV computed independently at each strike using Black-Scholes inversion.
-        If the model were perfect, the surface would be completely flat.
-        The curvature you see is the market telling you Black-Scholes is incomplete.
-        Real desks use Heston, SABR, or local volatility models to capture this structure.
-        Understanding *why* the smile exists is more valuable than the smile itself.
-        """)
-
-    col1, col2 = st.columns(2)
+        with st.expander("What is the Volatility Smile? — Why the surface is never flat"):
+            st.markdown("""
+            **Black-Scholes assumes constant volatility** across all strikes and maturities. The market disagrees.
+    
+            When you back out implied volatility from real market prices across different strikes,
+            you get a U-shaped curve — not a flat line:
+    
+            - **Deep ITM options** → Higher IV
+            - **ATM options** → Lowest IV
+            - **Deep OTM options** → Higher IV
+    
+            This curvature is the **volatility smile**. For equity indices like the S&P 500,
+            it becomes a **volatility skew** — downside strikes carry systematically higher IV
+            because traders pay a premium for crash protection.
+    
+            **What this means practically:**
+            The 3D surface below shows IV computed independently at each strike using Black-Scholes inversion.
+            If the model were perfect, the surface would be completely flat.
+            The curvature you see is the market telling you Black-Scholes is incomplete.
+            Real desks use Heston, SABR, or local volatility models to capture this structure.
+            Understanding *why* the smile exists is more valuable than the smile itself.
+            """)
+    
+        col1, col2 = st.columns(2)
         
         with col1:
             st.markdown("#### Implied Volatility Calculator")

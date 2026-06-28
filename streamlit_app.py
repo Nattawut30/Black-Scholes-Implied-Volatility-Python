@@ -308,6 +308,15 @@ risk_free_rate = st.sidebar.slider(
     help="Treasury rate or LIBOR"
 )
 
+dividend_yield = st.sidebar.slider(
+    "Dividend Yield (% Annual)",
+    min_value=0.0,
+    max_value=25.0,
+    value=0.0,
+    step=0.1,
+    help="Continuous dividend yield. Use 0.0 for non-dividend paying stocks like most tech companies."
+)
+
 st.sidebar.markdown("---")
 
 calculate_btn = st.sidebar.button(
@@ -324,7 +333,8 @@ if calculate_btn or 'results' in st.session_state:
             K=strike_price,
             T_days=days_to_expiry,
             r_pct=risk_free_rate,
-            sigma_pct=volatility
+            sigma_pct=volatility,
+            q_pct=dividend_yield
         )
         
         st.session_state.results = results
@@ -547,6 +557,22 @@ if 'results' in st.session_state:
             - Price change per 1% rate change
             - Usually smallest Greek
             """)
+        st.markdown("---")
+        st.markdown("### Second-Order Greeks")
+        st.caption("Used by professional options desks for advanced hedging.")
+        col_v, col_c = st.columns(2)
+        with col_v:
+            st.metric(
+                "Vanna",
+                f"{greeks['vanna']:.6f}",
+                help="∂Delta/∂σ — How delta shifts when volatility moves. Used to manage delta exposure after a vol spike."
+            )
+        with col_c:
+            st.metric(
+                "Charm",
+                f"{greeks['charm']:.6f}",
+                help="−∂Delta/∂t — Daily rate of delta decay. Critical for overnight and weekend risk management."
+            )
     
     # TAB 2: PRICE SENSITIVITY
     with tab2:
@@ -674,9 +700,32 @@ if 'results' in st.session_state:
     
     # TAB 4: ADVANCED ANALYSIS
     with tab4:
-        st.markdown("### Advanced Analysis Tools")
-        
-        col1, col2 = st.columns(2)
+    st.markdown("### Advanced Analysis Tools")
+
+    with st.expander("What is the Volatility Smile? — Why the surface is never flat"):
+        st.markdown("""
+        **Black-Scholes assumes constant volatility** across all strikes and maturities. The market disagrees.
+
+        When you back out implied volatility from real market prices across different strikes,
+        you get a U-shaped curve — not a flat line:
+
+        - **Deep ITM options** → Higher IV
+        - **ATM options** → Lowest IV
+        - **Deep OTM options** → Higher IV
+
+        This curvature is the **volatility smile**. For equity indices like the S&P 500,
+        it becomes a **volatility skew** — downside strikes carry systematically higher IV
+        because traders pay a premium for crash protection.
+
+        **What this means practically:**
+        The 3D surface below shows IV computed independently at each strike using Black-Scholes inversion.
+        If the model were perfect, the surface would be completely flat.
+        The curvature you see is the market telling you Black-Scholes is incomplete.
+        Real desks use Heston, SABR, or local volatility models to capture this structure.
+        Understanding *why* the smile exists is more valuable than the smile itself.
+        """)
+
+    col1, col2 = st.columns(2)
         
         with col1:
             st.markdown("#### Implied Volatility Calculator")

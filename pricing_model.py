@@ -54,13 +54,13 @@ class OptionsPricingModel:
     MAX_VOLATILITY = 5.0  # 500%
     MIN_RATE = -0.1  # -10%
     MAX_RATE = 1.0  # 100%
-    
-    def __init__(self, stock_price, strike_price, time_to_expiry, risk_free_rate, volatility):
+
+    def __init__(self, stock_price, strike_price, time_to_expiry, risk_free_rate, volatility, dividend_yield=0.0):
         """Initialize with validation and error handling"""
         
         # Validate inputs
-        self._validate_inputs(stock_price, strike_price, time_to_expiry, 
-                             risk_free_rate, volatility)
+        self._validate_inputs(stock_price, strike_price, time_to_expiry,
+                              risk_free_rate, volatility, dividend_yield)
         
         # Store validated parameters
         self.S = float(stock_price)
@@ -68,12 +68,13 @@ class OptionsPricingModel:
         self.T = float(time_to_expiry)
         self.r = float(risk_free_rate)
         self.sigma = float(volatility)
+        self.q = float(dividend_yield)
         
         # Calculate d1 and d2 safely
         self.d1 = self._calculate_d1()
         self.d2 = self._calculate_d2()
     
-    def _validate_inputs(self, S, K, T, r, sigma):
+    def _validate_inputs(self, S, K, T, r, sigma, q=0.0):
         """
         Validate all inputs to prevent calculation errors
         
@@ -98,6 +99,9 @@ class OptionsPricingModel:
         
         if r < self.MIN_RATE or r > self.MAX_RATE:
             raise ValueError(f"Risk-free rate must be between {self.MIN_RATE*100}% and {self.MAX_RATE*100}%")
+            
+        if q < -0.1 or q > 0.5:
+            raise ValueError(f"Dividend yield must be between -10% and 50%. Got: {q*100:.1f}%")
     
     def _calculate_d1(self):
         """
@@ -106,7 +110,7 @@ class OptionsPricingModel:
         d1 = [ln(S/K) + (r + σ²/2)T] / (σ√T)
         """
         try:
-            numerator = np.log(self.S / self.K) + (self.r + 0.5 * self.sigma ** 2) * self.T
+            numerator = np.log(self.S / self.K) + (self.r - self.q + 0.5 * self.sigma ** 2) * self.T
             denominator = self.sigma * np.sqrt(self.T)
             
             # Handle edge case where denominator is very small
@@ -136,8 +140,8 @@ class OptionsPricingModel:
         float : Call option price
         """
         try:
-            call = (self.S * norm.cdf(self.d1) - 
-                   self.K * np.exp(-self.r * self.T) * norm.cdf(self.d2))
+            call = (self.S * np.exp(-self.q * self.T) * norm.cdf(self.d1) -
+                    self.K * np.exp(-self.r * self.T) * norm.cdf(self.d2))
             return max(0.0, round(call, 4))  # Ensure non-negative
         except Exception as e:
             raise ValueError(f"Error calculating call price: {str(e)}")
@@ -153,8 +157,8 @@ class OptionsPricingModel:
         float : Put option price
         """
         try:
-            put = (self.K * np.exp(-self.r * self.T) * norm.cdf(-self.d2) - 
-                  self.S * norm.cdf(-self.d1))
+            put = (self.K * np.exp(-self.r * self.T) * norm.cdf(-self.d2) -
+                   self.S * np.exp(-self.q * self.T) * norm.cdf(-self.d1))
             return max(0.0, round(put, 4))  # Ensure non-negative
         except Exception as e:
             raise ValueError(f"Error calculating put price: {str(e)}")
@@ -220,49 +224,68 @@ class OptionsPricingModel:
             N_d2 = norm.cdf(self.d2)
             N_neg_d2 = norm.cdf(-self.d2)
             
-            # Delta: ∂V/∂S (price sensitivity to stock price)
-            call_delta = N_d1
-            put_delta = N_d1 - 1
-            
-            # Gamma: ∂²V/∂S² (rate of change of delta)
-            # Same for call and put
-            gamma = phi_d1 / (self.S * self.sigma * sqrt_T) if self.S * self.sigma * sqrt_T > 0 else 0
-            
-            # Vega: ∂V/∂σ (sensitivity to volatility)
-            # Same for call and put, expressed per 1% change
-            vega = (self.S * phi_d1 * sqrt_T) / 100
-            
-            # Theta: ∂V/∂T (time decay)
-            # Expressed per calendar day
-            call_theta_term1 = -(self.S * phi_d1 * self.sigma) / (2 * sqrt_T)
-            call_theta_term2 = -self.r * self.K * exp_neg_rT * N_d2
-            call_theta = (call_theta_term1 + call_theta_term2) / 365
-            
-            put_theta_term1 = -(self.S * phi_d1 * self.sigma) / (2 * sqrt_T)
-            put_theta_term2 = self.r * self.K * exp_neg_rT * N_neg_d2
-            put_theta = (put_theta_term1 + put_theta_term2) / 365
-            
-            # Rho: ∂V/∂r (sensitivity to interest rate)
-            # Expressed per 1% change in rate
+            exp_neg_qT = np.exp(-self.q * self.T)
+
+            # Delta: ∂V/∂S — adjusted for continuous dividend yield
+            call_delta = exp_neg_qT * N_d1
+            put_delta = exp_neg_qT * (N_d1 - 1)
+
+            # Gamma: ∂²V/∂S² — same for call and put
+            gamma = (phi_d1 * exp_neg_qT) / (self.S * self.sigma * sqrt_T) if self.S * self.sigma * sqrt_T > 0 else 0
+
+            # Vega: ∂V/∂σ — per 1% change in volatility
+            vega = (self.S * exp_neg_qT * phi_d1 * sqrt_T) / 100
+
+            # Theta: ∂V/∂T — per calendar day, BSM adjusted
+            call_theta = (
+                -(self.S * exp_neg_qT * phi_d1 * self.sigma) / (2 * sqrt_T)
+                - self.r * self.K * exp_neg_rT * N_d2
+                + self.q * self.S * exp_neg_qT * N_d1
+            ) / 365
+
+            put_theta = (
+                -(self.S * exp_neg_qT * phi_d1 * self.sigma) / (2 * sqrt_T)
+                + self.r * self.K * exp_neg_rT * N_neg_d2
+                - self.q * self.S * exp_neg_qT * N_neg_d1
+            ) / 365
+
+            # Rho: ∂V/∂r — per 1% change in rate
             call_rho = (self.K * self.T * exp_neg_rT * N_d2) / 100
             put_rho = -(self.K * self.T * exp_neg_rT * N_neg_d2) / 100
-            
+
+            # Vanna: ∂Delta/∂σ — how delta shifts as volatility moves
+            # Desks use this to manage delta exposure when vol spikes
+            vanna = (-exp_neg_qT * phi_d1 * (self.d2 / self.sigma)) if self.sigma > 0 else 0.0
+
+            # Charm: -∂Delta/∂t — rate of delta decay per calendar day
+            # Critical for overnight and weekend risk management
+            if sqrt_T > 0 and self.sigma > 0:
+                charm = (-exp_neg_qT * phi_d1 * (
+                    2 * (self.r - self.q) * self.T - self.d2 * self.sigma * sqrt_T
+                ) / (2 * self.T * self.sigma * sqrt_T)) / 365
+            else:
+                charm = 0.0
+
             return {
-                # Call Greeks
+                # First-order Greeks — Call
                 'call_delta': round(call_delta, 4),
                 'call_gamma': round(gamma, 4),
                 'call_vega': round(vega, 4),
                 'call_theta': round(call_theta, 4),
                 'call_rho': round(call_rho, 4),
-                
-                # Put Greeks
+
+                # First-order Greeks — Put
                 'put_delta': round(put_delta, 4),
-                'put_gamma': round(gamma, 4),  # Same as call
-                'put_vega': round(vega, 4),     # Same as call
+                'put_gamma': round(gamma, 4),
+                'put_vega': round(vega, 4),
                 'put_theta': round(put_theta, 4),
-                'put_rho': round(put_rho, 4)
+                'put_rho': round(put_rho, 4),
+
+                # Second-order Greeks
+                'vanna': round(vanna, 6),
+                'charm': round(charm, 6)
             }
-        
+            
         except Exception as e:
             raise ValueError(f"Error calculating Greeks: {str(e)}")
     
@@ -289,8 +312,9 @@ class OptionsPricingModel:
         }
 
 
-def calculate_implied_volatility(market_price, stock_price, strike_price, 
-                                 time_to_expiry, risk_free_rate, option_type='call'):
+def calculate_implied_volatility(market_price, stock_price, strike_price,
+                                  time_to_expiry, risk_free_rate, option_type='call',
+                                  dividend_yield=0.0):
     """
     Calculate implied volatility using Newton-Raphson method
     
@@ -320,8 +344,8 @@ def calculate_implied_volatility(market_price, stock_price, strike_price,
     def objective_function(sigma):
         """Function to minimize: BS_price - market_price"""
         try:
-            model = OptionsPricingModel(stock_price, strike_price, time_to_expiry, 
-                                       risk_free_rate, sigma)
+            model = OptionsPricingModel(stock_price, strike_price, time_to_expiry,
+                                            risk_free_rate, sigma, dividend_yield=dividend_yield)
             if option_type.lower() == 'call':
                 return model.call_price() - market_price
             else:
@@ -375,7 +399,7 @@ def calculate_historical_volatility(price_series, periods=252):
 
 
 # Convenience function for quick calculations
-def quick_price(S, K, T_days, r_pct, sigma_pct):
+def quick_price(S, K, T_days, r_pct, sigma_pct, q_pct=0.0):
     """
     Quick option pricing with intuitive inputs
     
@@ -394,8 +418,9 @@ def quick_price(S, K, T_days, r_pct, sigma_pct):
     T = T_days / 365
     r = r_pct / 100
     sigma = sigma_pct / 100
-    
-    model = OptionsPricingModel(S, K, T, r, sigma)
+    q = q_pct / 100
+
+    model = OptionsPricingModel(S, K, T, r, sigma, dividend_yield=q)
     
     return {
         'call_price': model.call_price(),

@@ -2,7 +2,6 @@
 <br>**Nattawut Boonnoon**<br/>
 - LinkedIn: www.linkedin.com/in/nattawut-bn
 - Email: nattawut.boonnoon@hotmail.com
-- Phone: (+66) 92 271 6680
 
 ***Overview***
 - 
@@ -28,7 +27,7 @@ P = K·e^(-rT)·N(-d₂) - S₀·N(-d₁)
 `````
 Where:
 `````bash
-d₁ = [ln(S₀/K) + (r + σ²/2)T] / (σ√T)
+d₁ = [ln(S₀/K) + (r - q + σ²/2)T] / (σ√T)
 d₂ = d₁ - σ√T
 `````
 Parameters:

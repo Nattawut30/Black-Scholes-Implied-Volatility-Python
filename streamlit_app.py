@@ -700,7 +700,7 @@ if 'results' in st.session_state:
     
     # TAB 4: ADVANCED ANALYSIS
     with tab4:
-    st.markdown("### Advanced Analysis Tools")
+        st.markdown("### Advanced Analysis Tools")
 
         with st.expander("What is the Volatility Smile? — Why the surface is never flat"):
             st.markdown("""

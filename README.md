@@ -5,7 +5,8 @@
 
 ***Overview***
 - 
-Try It Out: https://natawut-black-scholes.streamlit.app/ <br>
+LiveApp: https://natawut-black-scholes.streamlit.app/ <br>
+(If the app is offline, click wake it up. The app is fine but sometimes rests!)
 
 This is my options pricing models analysis that combines educational clarity with real-world utility. It uses the Black-Scholes model to price European options and includes advanced features like implied volatility calculation, strategy analysis, and live market data integration. Built with Python and Streamlit, it serves both learning and practical analysis.
 

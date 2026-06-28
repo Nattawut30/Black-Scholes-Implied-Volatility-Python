@@ -430,7 +430,7 @@ if 'results' in st.session_state:
     for rec in recommendations:
         st.markdown(f'<div class="info-box">{rec}</div>', unsafe_allow_html=True)
     
-    st.markdown('<div class="warning-box"><b>Disclaimer:</b>These are analytical insights based on current market conditions.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="warning-box"><b>Disclaimer:</b> These are analytical insights based on current market conditions.</div>', unsafe_allow_html=True)
     
     st.markdown("---")
     
@@ -702,19 +702,19 @@ if 'results' in st.session_state:
     with tab4:
         st.markdown("### Advanced Analysis Tools")
 
-        with st.expander("What is the Volatility Smile? — Why the surface is never flat"):
+        with st.expander("What is the Volatility Smile?, Why the surface is never flat?"):
             st.markdown("""
             **Black-Scholes assumes constant volatility** across all strikes and maturities. The market disagrees.
     
             When you back out implied volatility from real market prices across different strikes,
-            you get a U-shaped curve — not a flat line:
+            you get a U-shaped curve, not a flat line:
     
             - **Deep ITM options** → Higher IV
             - **ATM options** → Lowest IV
             - **Deep OTM options** → Higher IV
     
             This curvature is the **volatility smile**. For equity indices like the S&P 500,
-            it becomes a **volatility skew** — downside strikes carry systematically higher IV
+            it becomes a **volatility skew** downside strikes carry systematically higher IV
             because traders pay a premium for crash protection.
     
             **What this means practically:**
@@ -859,7 +859,7 @@ st.markdown("""
             </a>
         </p>
         <p style='font-size: 0.8em; color: #999; margin-top: 1rem;'>
-            ✅ For quantitative analysis and hedging strategy only.
+            ** For quantitative analysis and hedging strategy. **
         </p>
     </div>
 """, unsafe_allow_html=True)

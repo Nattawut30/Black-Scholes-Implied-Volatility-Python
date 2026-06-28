@@ -107,7 +107,7 @@ def fetch_stock_data(ticker, period='1mo'):
         st.error(f"Error fetching data for {ticker}: {str(e)}")
         return None, None
 
-def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range):
+def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):
     """Create 3D price surface visualization"""
     call_prices = np.zeros((len(sigma_range), len(S_range)))
     put_prices = np.zeros((len(sigma_range), len(S_range)))
@@ -115,7 +115,7 @@ def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range):
     for i, sigma in enumerate(sigma_range):
         for j, stock_price in enumerate(S_range):
             try:
-                model = OptionsPricingModel(stock_price, K, T, r, sigma)
+                model = OptionsPricingModel(stock_price, K, T, r, sigma, dividend_yield=q)
                 call_prices[i, j] = model.call_price()
                 put_prices[i, j] = model.put_price()
             except:
@@ -592,7 +592,8 @@ if 'results' in st.session_state:
         for s in S_range:
             try:
                 model = OptionsPricingModel(s, strike_price, days_to_expiry/365, 
-                                          risk_free_rate/100, volatility/100)
+                                          risk_free_rate/100, volatility/100,
+                                            dividend_yield=dividend_yield/100)
                 call_prices_S.append(model.call_price())
                 put_prices_S.append(model.put_price())
             except:
@@ -602,7 +603,7 @@ if 'results' in st.session_state:
         for v in vol_range:
             try:
                 model = OptionsPricingModel(stock_price, strike_price, days_to_expiry/365,
-                                          risk_free_rate/100, v/100)
+                                          risk_free_rate/100, v/100, dividend_yield=dividend_yield/100)
                 call_prices_vol.append(model.call_price())
                 put_prices_vol.append(model.put_price())
             except:
@@ -612,7 +613,7 @@ if 'results' in st.session_state:
         for t in time_range:
             try:
                 model = OptionsPricingModel(stock_price, strike_price, t/365,
-                                          risk_free_rate/100, volatility/100)
+                                          risk_free_rate/100, volatility/100, dividend_yield=dividend_yield/100)
                 call_prices_time.append(model.call_price())
                 put_prices_time.append(model.put_price())
             except:
@@ -768,7 +769,8 @@ if 'results' in st.session_state:
                         
                         call_surface, put_surface = create_price_surface_heatmap(
                             stock_price, strike_price, days_to_expiry/365,
-                            risk_free_rate/100, sigma_range, S_range_heat
+                            risk_free_rate/100, sigma_range, S_range_heat,
+                            q=dividend_yield/100
                         )
                         
                         fig = go.Figure(data=[go.Surface(

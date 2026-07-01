@@ -748,7 +748,7 @@ if 'results' in st.session_state:
                         strike_price,
                         days_to_expiry / 365,
                         risk_free_rate / 100,
-                        option_type_iv
+                        option_type_iv,
                         dividend_yield / 100
                     )
                     

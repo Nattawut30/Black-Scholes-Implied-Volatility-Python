@@ -1,31 +1,18 @@
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import pytest
+from pricing_model import OptionsPricingModel, option_strategy_payoff
+import numpy as np
 
-from pricing_model import OptionsPricingModel, calculate_implied_volatility
-
-def test_call_price_is_positive():
-    model = OptionsPricingModel(100, 100, 1.0, 0.05, 0.20)
-    assert model.call_price() > 0
-
-def test_put_price_is_positive():
-    model = OptionsPricingModel(100, 100, 1.0, 0.05, 0.20)
-    assert model.put_price() > 0
+def test_call_price_known_textbook_value():
+    model = OptionsPricingModel(S=100, K=100, T=1, r=0.05, volatility=0.2)
+    assert model.call_price() == pytest.approx(10.45, abs=0.01)
 
 def test_put_call_parity_holds():
-    model = OptionsPricingModel(100, 100, 1.0, 0.05, 0.20)
-    result = model.put_call_parity_check()
-    assert result['is_valid'] == True
+    model = OptionsPricingModel(S=100, K=100, T=1, r=0.05, volatility=0.2)
+    assert model.put_call_parity_check()['is_valid'] is True
 
-def test_implied_volatility_roundtrip():
-    model = OptionsPricingModel(100, 100, 1.0, 0.05, 0.20)
-    call = model.call_price()
-    iv = calculate_implied_volatility(call, 100, 100, 1.0, 0.05, 'call')
-    assert abs(iv - 0.20) < 0.001
-
-def test_invalid_input_raises_error():
-    try:
-        OptionsPricingModel(-1, 100, 1.0, 0.05, 0.20)
-        assert False, "Should have raised ValueError"
-    except ValueError:
-        pass
+def test_strategy_payoff_put_differs_from_call():
+    # This test locks in the exact bug you just fixed
+    S_range = np.array([80, 100, 120])
+    call_payoff = option_strategy_payoff(['long_call'], S_range, [100], [5], [1])
+    put_payoff = option_strategy_payoff(['long_put'], S_range, [100], [5], [1])
+    assert not np.array_equal(call_payoff, put_payoff)

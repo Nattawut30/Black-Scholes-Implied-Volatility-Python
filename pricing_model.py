@@ -15,7 +15,7 @@ Features:
 - Implied volatility solver
 - Historical volatility calculator
 - Edge case handling and validation
-- Real-world accuracy guaranteed
+- Built on standard Black-Scholes assumptions (see README for limitations)
 
 """
 
@@ -316,7 +316,7 @@ def calculate_implied_volatility(market_price, stock_price, strike_price,
                                   time_to_expiry, risk_free_rate, option_type='call',
                                   dividend_yield=0.0):
     """
-    Calculate implied volatility using Newton-Raphson method
+    Calculate implied volatility using Brent's method (guaranteed convergence within given volatility bounds)
     
     This is the volatility that makes the Black-Scholes price equal to the market price.
     CRITICAL for real-world trading - traders use IV more than theoretical prices!
@@ -397,6 +397,21 @@ def calculate_historical_volatility(price_series, periods=252):
     except Exception as e:
         raise ValueError(f"Error calculating historical volatility: {str(e)}")
 
+def option_strategy_payoff(strategy_type, stock_price_range, strike_prices,
+                            premiums, positions):
+    """
+    Calculate payoff for common option strategies
+    ...
+    """
+    payoff = np.zeros_like(stock_price_range)
+
+    for i, (K, premium, pos) in enumerate(zip(strike_prices, premiums, positions)):
+        if pos > 0: # Long position
+            payoff += pos * (np.maximum(stock_price_range - K, 0) - premium)
+        else: # Short position
+            payoff += pos * (np.maximum(stock_price_range - K, 0) - premium)
+
+    return payoff
 
 # Convenience function for quick calculations
 def quick_price(S, K, T_days, r_pct, sigma_pct, q_pct=0.0):

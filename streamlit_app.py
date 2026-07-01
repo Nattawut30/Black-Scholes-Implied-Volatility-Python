@@ -749,6 +749,7 @@ if 'results' in st.session_state:
                         days_to_expiry / 365,
                         risk_free_rate / 100,
                         option_type_iv
+                        dividend_yield / 100
                     )
                     
                     if iv:

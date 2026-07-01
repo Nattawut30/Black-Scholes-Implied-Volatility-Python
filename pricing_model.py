@@ -107,7 +107,7 @@ class OptionsPricingModel:
         """
         Calculate d1 component with numerical stability
         
-        d1 = [ln(S/K) + (r + σ²/2)T] / (σ√T)
+        d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
         """
         try:
             numerator = np.log(self.S / self.K) + (self.r - self.q + 0.5 * self.sigma ** 2) * self.T
@@ -133,7 +133,7 @@ class OptionsPricingModel:
         """
         Calculate European Call Option Price
         
-        Call = S·N(d1) - K·e^(-rT)·N(d2)
+        call_price = S * np.exp(-q * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
         
         Returns:
         --------
@@ -150,7 +150,7 @@ class OptionsPricingModel:
         """
         Calculate European Put Option Price
         
-        Put = K·e^(-rT)·N(-d2) - S·N(-d1)
+        put_price  = K * np.exp(-r * T) * norm.cdf(-d2) - S * np.exp(-q * T) * norm.cdf(-d1)
         
         Returns:
         --------
@@ -399,18 +399,18 @@ def calculate_historical_volatility(price_series, periods=252):
 
 def option_strategy_payoff(strategy_type, stock_price_range, strike_prices,
                             premiums, positions):
-    """
-    Calculate payoff for common option strategies
-    ...
-    """
     payoff = np.zeros_like(stock_price_range)
-
-    for i, (K, premium, pos) in enumerate(zip(strike_prices, premiums, positions)):
-        if pos > 0: # Long position
-            payoff += pos * (np.maximum(stock_price_range - K, 0) - premium)
-        else: # Short position
-            payoff += pos * (np.maximum(stock_price_range - K, 0) - premium)
-
+    
+    for K, premium, pos, s_type in zip(strike_prices, premiums, positions, strategy_type):
+        if 'call' in s_type.lower():
+            intrinsic = np.maximum(stock_price_range - K, 0)
+        elif 'put' in s_type.lower():
+            intrinsic = np.maximum(K - stock_price_range, 0)
+        else:
+            raise ValueError(f"Unknown strategy_type: {s_type}")
+        
+        payoff += pos * (intrinsic - premium)
+    
     return payoff
 
 # Convenience function for quick calculations

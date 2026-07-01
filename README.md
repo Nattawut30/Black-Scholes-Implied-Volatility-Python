@@ -5,13 +5,13 @@
 
 ***Overview***
 - 
-LiveApp: https://natawut-black-scholes.streamlit.app/ <br>
-(If the app is offline, click wake it up. The app is fine but sometimes rests!)
+Here: https://natawut-black-scholes.streamlit.app/ <br>
+(If the app is offline, click wake the app up. The app is fine but sometimes rests!)
 
 This is my options pricing models analysis that combines educational clarity with real-world utility. It uses the Black-Scholes model to price European options and includes advanced features like implied volatility calculation, strategy analysis, and live market data integration. Built with Python and Streamlit, it serves both learning and practical analysis.
 
-![Price_sensitivity](Price_Sensitivity.png) <br>
-![3D_surface](3D_surface.png)
+![Demo Homepage](photo/homepage.png)
+
 
 # <p align="center">What is Black-Scholes pricing model? <p/>
 The Black-Scholes, or Black-Scholes-Merton model is a mathematical model that describes the trends of a financial market, including derivative investment instruments. The formula and model are named after the economists *Fischer Black* and *Myron Scholes*. Occasionally, attribution is also awarded to *Robert C. Merton*, who was the first to write an academic paper on the topic.

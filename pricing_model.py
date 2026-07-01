@@ -6,7 +6,6 @@ Created By: Nattawut Boonnoon
 GitHub: https://github.com/Nattawut30
 Linkedin: www.linkedin.com/in/nattawut-bn
 Email: nattawut.boonnoon@hotmail.com
-Phone: (+66) 92 271 6680
 Locations: Bangkok, Thailand
 
 Features:

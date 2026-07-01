@@ -23,7 +23,7 @@ from plotly.subplots import make_subplots
 import yfinance as yf
 from datetime import datetime
 
-from pricing_model import (
+from src.pricing_model import (
     OptionsPricingModel,
     calculate_implied_volatility,
     calculate_historical_volatility,

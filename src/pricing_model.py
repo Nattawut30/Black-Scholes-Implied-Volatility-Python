@@ -73,8 +73,7 @@ class OptionsPricingModel:
         self.d1 = self._calculate_d1()
         self.d2 = self._calculate_d2()
     
-    def _validate_inputs(self, S: float, K: float, T: float, r: float, sigma: float) -> None:
-        
+    def _validate_inputs(self, S: float, K: float, T: float, r: float, sigma: float, q: float = 0.0) -> None:
         if S < self.MIN_STOCK_PRICE:
             raise ValueError(f"Stock price (S) must be at least {self.MIN_STOCK_PRICE}")
         if K < self.MIN_STRIKE_PRICE:

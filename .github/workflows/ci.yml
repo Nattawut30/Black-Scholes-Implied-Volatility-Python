@@ -26,7 +26,7 @@ jobs:
 
     - name: Run Static Type Check (Mypy)
       run: |
-        mypy pricing_model.py --ignore-missing-imports
+        mypy src/pricing_model.py --ignore-missing-imports
 
     - name: Run Test Suite (Pytest)
       run: |

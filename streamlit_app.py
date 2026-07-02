@@ -24,12 +24,16 @@ from datetime import datetime
 
 import sys
 import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from src.pricing_model import (
+    BlackScholesModel, 
+    calculate_implied_volatility, 
+    calculate_historical_volatility, 
+    quick_price
+)
 
-from src.pricing_model import BlackScholesModel
-
-bs_model = BlackScholesModel(stock_price=100.0, strike_price=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.2)
+bs_model = BlackScholesModel()
 
 # PAGE CONFIGURATION
 st.set_page_config(
@@ -42,60 +46,20 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
     <style>
-    .main-header {
-        font-size: 3rem;
-        font-weight: 700;
-        background: linear-gradient(120deg, #1f77b4, #ff7f0e);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        padding: 1rem 0;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 1.3rem;
-        color: #666;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .stMetric {
-        background-color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .success-box {
-        background-color: #d4edda;
-        border-left: 4px solid #28a745;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
-    }
-    .info-box {
-        background-color: #e7f3ff;
-        border-left: 4px solid #1f77b4;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
-    }
-    .warning-box {
-        background-color: #fff3cd;
-        border-left: 4px solid #ffc107;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
-    }
+    .main-header { font-size: 3rem; font-weight: 700; background: linear-gradient(120deg, #1f77b4, #ff7f0e); -webkit-background-clip: text; -webkit-fill-color: transparent; text-align: center; padding: 1rem 0; margin-bottom: 0.5rem; }
+    .sub-header { font-size: 1.3rem; color: #666; text-align: center; margin-bottom: 2rem; }
+    .stMetric { background-color: #f8f9fa; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .success-box { background-color: #d4edda; border-left: 4px solid #28a745; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    .info-box { background-color: #e7f3ff; border-left: 4px solid #1f77b4; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    .warning-box { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
     </style>
 """, unsafe_allow_html=True)
 
-# SESSION STATE INITIALIZATION
 if 'calculation_history' not in st.session_state:
     st.session_state.calculation_history = []
 
-# HELPER FUNCTIONS
 @st.cache_data(ttl=300)
 def fetch_stock_data(ticker, period='1mo'):
-    """Fetch real-time stock data from Yahoo Finance"""
     try:
         stock = yf.Ticker(ticker)
         hist = stock.history(period=period)
@@ -109,30 +73,31 @@ def fetch_stock_data(ticker, period='1mo'):
         return None, None
 
 def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):
-    """Create 3D price surface visualization"""
     call_prices = np.zeros((len(sigma_range), len(S_range)))
     put_prices = np.zeros((len(sigma_range), len(S_range)))
     
     for i, sigma in enumerate(sigma_range):
         for j, stock_price in enumerate(S_range):
             try:
-                model = OptionsPricingModel(stock_price, K, T, r, sigma, dividend_yield=q)
+                
+                model = BlackScholesModel(stock_price, K, T, r, sigma, dividend_yield=q)
                 call_prices[i, j] = model.call_price()
                 put_prices[i, j] = model.put_price()
             except:
                 call_prices[i, j] = np.nan
                 put_prices[i, j] = np.nan
-    
     return call_prices, put_prices
     
-def create_strategy_payoff(strategy_type, stock_price_range, K, premium, spot_price=None):
-    return bs_model.option_strategy_payoff(
+def create_strategy_payoff(strategy_type, stock_price, K, premium, spot_price=None):
+    stock_price_range = np.linspace(stock_price * 0.5, stock_price * 1.5, 100)
+    payoff = bs_model.option_strategy_payoff(
         strategy_type=strategy_type, 
         stock_price_range=stock_price_range, 
         K=K, 
         premium=premium, 
         spot_price=spot_price
     )
+    return stock_price_range, payoff
 
 def export_to_csv(data, filename):
     """Export calculation results to CSV"""

@@ -618,60 +618,41 @@ if 'results' in st.session_state:
         
         fig.update_layout(height=500, hovermode='x unified')
         st.plotly_chart(fig, use_container_width=True)
-    
-    # TAB 3: STRATEGY BUILDER
+        
+    # TAB 3: SIMPLE HEATMAP (แทนที่ Strategy Builder)
     with tab3:
-        st.markdown("### Option Strategy Analyzer")
+        st.markdown("### Heatmap")
         
-        strategy = st.selectbox(
-            "Select Strategy",
-            ['Long Call', 'Long Put', 'Covered Call', 'Protective Put', 
-             'Long Straddle', 'Short Straddle']
-        )
+        S_matrix = np.linspace(stock_price * 0.9, stock_price * 1.1, 7)
+        vol_matrix = np.linspace(max(5.0, volatility - 15), volatility + 15, 7)
         
-        S_range, payoff = create_strategy_payoff(
-            strategy, 
-            stock_price, 
-            strike_price,
-            results['call_price'],
-            results['put_price']
-        )
+        opt_type = st.radio("Heatmap Choices:", ["Call Option", "Put Option"], horizontal=True)
         
-        fig = go.Figure()
-        
-        fig.add_trace(go.Scatter(
-            x=S_range,
-            y=payoff,
-            mode='lines',
-            name=strategy,
-            line=dict(width=3),
-            fill='tozeroy',
-            fillcolor='rgba(31, 119, 180, 0.2)'
+        heatmap_data = []
+        for v in vol_matrix:
+            row = []
+            for s in S_matrix:
+                model = BlackScholesModel(s, strike_price, days_to_expiry/365, risk_free_rate/100, v/100, dividend_yield/100)
+                price = model.call_price() if opt_type == "Call Option" else model.put_price()
+                row.append(price)
+            heatmap_data.append(row)
+            
+        fig_heat = go.Figure(data=go.Heatmap(
+            z=heatmap_data,
+            x=[f"${x:.1f}" for x in S_matrix],
+            y=[f"{y:.1f}%" for y in vol_matrix],
+            colorscale='YlGnBu' if opt_type == "Call Option" else 'OrRd',
+            text=np.round(heatmap_data, 2),
+            texttemplate="%{text}",
+            hoverinfo="z"
         ))
         
-        fig.add_hline(y=0, line_dash="dash", line_color="black")
-        fig.add_vline(x=stock_price, line_dash="dash", line_color="blue", annotation_text="Current Price")
-        
-        fig.update_layout(
-            title=f"{strategy} Payoff Diagram at Expiration",
-            xaxis_title="Stock Price at Expiration ($)",
-            yaxis_title="Profit/Loss ($)",
-            hovermode='x unified',
-            height=500
+        fig_heat.update_layout(
+            xaxis_title="ราคาสินค้าอ้างอิง (Stock Price)",
+            yaxis_title="ความผันผวน (Volatility %)",
+            height=450
         )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        strategy_info = {
-            'Long Call': "Bullish strategy. Unlimited upside, limited downside (premium paid).",
-            'Long Put': "Bearish strategy. Profit from stock decline, limited risk.",
-            'Covered Call': "Income generation. Sell call against owned stock.",
-            'Protective Put': "Downside protection. Insurance for long stock position.",
-            'Long Straddle': "Volatility play. Profit from large moves in either direction.",
-            'Short Straddle': "Sell volatility. Profit if stock stays near strike."
-        }
-        
-        st.info(f"**Strategy:** {strategy_info[strategy]}")
+        st.plotly_chart(fig_heat, use_container_width=True)
     
     # TAB 4: ADVANCED ANALYSIS
     with tab4:

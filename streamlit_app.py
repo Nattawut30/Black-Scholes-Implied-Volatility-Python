@@ -61,14 +61,18 @@ if 'calculation_history' not in st.session_state:
 def fetch_stock_data(ticker, period='1mo'):
     try:
         stock = yf.Ticker(ticker)
+        info = stock.info
+        if 'regularMarketPrice' not in info and 'currentPrice' not in info:
+             return None, None
+             
         hist = stock.history(period=period)
         if hist.empty:
             return None, None
+            
         current_price = hist['Close'].iloc[-1]
         hist_vol = calculate_historical_volatility(hist['Close'].values)
         return current_price, hist_vol
     except Exception as e:
-        st.error(f"Error fetching data for {ticker}: {str(e)}")
         return None, None
 
 def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):

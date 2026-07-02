@@ -26,9 +26,8 @@ jobs:
 
     - name: Run Static Type Check (Mypy)
       run: |
-        mypy src/pricing_model.py --ignore-missing-imports
+        mypy src/ --ignore-missing-imports --python-version 3.10
 
     - name: Run Test Suite (Pytest)
       run: |
-        export PYTHONPATH=$PYTHONPATH:$(pwd)
-        pytest tests/
+        PYTHONPATH=. pytest tests/

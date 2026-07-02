@@ -8,7 +8,6 @@ GitHub: https://github.com/Nattawut30
 Email: nattawut.boonnoon@hotmail.com
 Location: Bangkok, Thailand
 
-I dedicate this project to all my mentors who taught me well.
 
 Thank you!
 
@@ -123,21 +122,9 @@ def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):
                 put_prices[i, j] = np.nan
     
     return call_prices, put_prices
-
-def create_strategy_payoff(strategy_name, S_current, K, premium_call, premium_put):
-    """Generate payoff diagram for common strategies"""
-    S_range = np.linspace(S_current * 0.5, S_current * 1.5, 100)
     
-    strategies = {
-        'Long Call': np.maximum(S_range - K, 0) - premium_call,
-        'Long Put': np.maximum(K - S_range, 0) - premium_put,
-        'Covered Call': (S_range - S_current) - np.maximum(S_range - K, 0) + premium_call,
-        'Protective Put': (S_range - S_current) + np.maximum(K - S_range, 0) - premium_put,
-        'Long Straddle': np.maximum(S_range - K, 0) + np.maximum(K - S_range, 0) - (premium_call + premium_put),
-        'Short Straddle': (premium_call + premium_put) - np.maximum(S_range - K, 0) - np.maximum(K - S_range, 0),
-    }
-    
-    return S_range, strategies.get(strategy_name, np.zeros_like(S_range))
+def create_strategy_payoff(strategy_type, stock_price_range, K, premium, spot_price=None):
+    return bs_model.option_strategy_payoff(strategy_type, stock_price_range, K, premium, spot_price)
 
 def export_to_csv(data, filename):
     """Export calculation results to CSV"""

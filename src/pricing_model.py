@@ -232,7 +232,7 @@ def quick_price(S: float, K: float, T_days: int, r_pct: float, sigma_pct: float)
     r = r_pct / 100
     sigma = sigma_pct / 100
 
-    
+
     model = BlackScholesModel(
         stock_price=S,
         strike_price=K,
@@ -244,5 +244,5 @@ def quick_price(S: float, K: float, T_days: int, r_pct: float, sigma_pct: float)
     return {
         'call_price': model.call_price(),
         'put_price': model.put_price(),
-        'greeks': model.get_greeks() 
+        'greeks': model.get_greeks()
     }

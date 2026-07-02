@@ -110,7 +110,7 @@ class OptionsPricingModel:
         """
         return self.d1 - self.sigma * np.sqrt(self.T)
     
-    def call_price(self):
+    def call_price(self) -> float:
         """
         Calculate European Call Option Price
         
@@ -127,7 +127,7 @@ class OptionsPricingModel:
         except Exception as e:
             raise ValueError(f"Error calculating call price: {str(e)}")
     
-    def put_price(self):
+    def put_price(self) -> float:
         """
         Calculate European Put Option Price
         
@@ -293,9 +293,16 @@ class OptionsPricingModel:
         }
 
 
-def calculate_implied_volatility(market_price, stock_price, strike_price,
-                                  time_to_expiry, risk_free_rate, option_type='call',
-                                  dividend_yield=0.0):
+def calculate_implied_volatility(
+        self, 
+        market_price: float, 
+        stock_price: float, 
+        strike_price: float,
+        time_to_expiry: float, 
+        risk_free_rate: float, 
+        option_type: str = 'call',
+        dividend_yield: float = 0.0) -> float | None:
+        
     """
     Calculate implied volatility using Brent's method (guaranteed convergence within given volatility bounds)
     

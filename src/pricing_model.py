@@ -24,7 +24,7 @@ from scipy.optimize import brentq
 import warnings
 
 
-class OptionsPricingModel:
+class BlackScholesModel:
     """
     Professional Black-Scholes Options Pricing Calculator
     

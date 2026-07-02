@@ -1,3 +1,5 @@
+[![Python Project CI](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/ci.yml/badge.svg)](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions)
+
 # <p align="center"> Python: Black-Scholes Implied Volatility <p/>
 <br>**Nattawut Boonnoon**<br/>
 - LinkedIn: www.linkedin.com/in/nattawut-bn

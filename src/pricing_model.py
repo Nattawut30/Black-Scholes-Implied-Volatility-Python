@@ -353,14 +353,11 @@ def calculate_implied_volatility(market_price, stock_price, strike_price,
             return float('inf')
     
     try:
-        # Use Brent's method for robust root finding
-        # Search between 0.1% and 300% volatility
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            iv = brentq(objective_function, 0.001, 3.0, maxiter=100)
-        return round(iv, 4)
-    except:
-        # If optimization fails, return None, alright?
+        return float(brentq(objective_function, 1e-6, 5.0))
+    except (ValueError, RuntimeError) as e:
+    
+        import logging
+        logging.error(f"Implied Volatility calculation failed due to mathematical limits: {e}")
         return None
 
 

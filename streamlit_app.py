@@ -22,6 +22,10 @@ from plotly.subplots import make_subplots
 import yfinance as yf
 from datetime import datetime
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
+
 from src.pricing_model import (
     OptionsPricingModel,
     calculate_implied_volatility,

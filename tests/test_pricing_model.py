@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from pricing_model import BlackScholesModel
+from src.pricing_model import BlackScholesModel
 
 def test_textbook_reference_value() -> None:
     

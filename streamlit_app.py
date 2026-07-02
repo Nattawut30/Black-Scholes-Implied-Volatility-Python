@@ -302,6 +302,7 @@ if calculate_btn or 'results' in st.session_state:
             'days_to_expiry': days_to_expiry,
             'volatility': volatility,
             'risk_free_rate': risk_free_rate
+            'dividend_yield': dividend_yield
         }
         
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -549,7 +550,7 @@ if 'results' in st.session_state:
         
         for s in S_range:
             try:
-                model = OptionsPricingModel(s, strike_price, days_to_expiry/365, 
+                model = BlackScholesModel(s, strike_price, days_to_expiry/365, 
                                           risk_free_rate/100, volatility/100,
                                             dividend_yield=dividend_yield/100)
                 call_prices_S.append(model.call_price())
@@ -560,7 +561,7 @@ if 'results' in st.session_state:
         
         for v in vol_range:
             try:
-                model = OptionsPricingModel(stock_price, strike_price, days_to_expiry/365,
+                model = BlackScholesModel(stock_price, strike_price, days_to_expiry/365,
                                           risk_free_rate/100, v/100, dividend_yield=dividend_yield/100)
                 call_prices_vol.append(model.call_price())
                 put_prices_vol.append(model.put_price())
@@ -570,7 +571,7 @@ if 'results' in st.session_state:
         
         for t in time_range:
             try:
-                model = OptionsPricingModel(stock_price, strike_price, t/365,
+                model = BlackScholesModel(stock_price, strike_price, t/365,
                                           risk_free_rate/100, volatility/100, dividend_yield=dividend_yield/100)
                 call_prices_time.append(model.call_price())
                 put_prices_time.append(model.put_price())

@@ -223,20 +223,26 @@ def calculate_historical_volatility(price_series, periods=252):
     except Exception as e:
         raise ValueError(f"Error calculating historical volatility: {str(e)}")
 
-def quick_price(S, K, T_days, r_pct, sigma_pct, q_pct=0.0):
+# Convenience function for quick calculations
+def quick_price(S: float, K: float, T_days: int, r_pct: float, sigma_pct: float) -> dict:
+    """
+    Quick option pricing with intuitive inputs
+    """
     T = T_days / 365
     r = r_pct / 100
     sigma = sigma_pct / 100
-    q = q_pct / 100
 
-    model = BlackScholesModel(S, K, T, r, sigma, dividend_yield=q)
+    
+    model = BlackScholesModel(
+        stock_price=S,
+        strike_price=K,
+        time_to_expiry=T,
+        risk_free_rate=r,
+        volatility=sigma
+    )
+    
     return {
         'call_price': model.call_price(),
         'put_price': model.put_price(),
-        'greeks': model.get_greeks(),
-        'call_intrinsic': model.intrinsic_value('call'),
-        'put_intrinsic': model.intrinsic_value('put'),
-        'call_time_value': model.time_value('call'),
-        'put_time_value': model.time_value('put'),
-        'parity_check': model.put_call_parity_check()
+        'greeks': model.get_greeks() 
     }

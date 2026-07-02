@@ -1,5 +1,9 @@
 import pytest
 import numpy as np
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.pricing_model import BlackScholesModel
 
 def test_textbook_reference_value() -> None:

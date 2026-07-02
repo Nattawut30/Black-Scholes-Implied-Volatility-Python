@@ -1,18 +1,33 @@
 import pytest
-from pricing_model import OptionsPricingModel, option_strategy_payoff
 import numpy as np
+from pricing_model import BlackScholesModel
 
-def test_call_price_known_textbook_value():
-    model = OptionsPricingModel(100, 100, 1, 0.05, 0.2)
-    assert model.call_price() == pytest.approx(10.45, abs=0.01)
+def test_textbook_reference_value() -> None:
+    
+    model = BlackScholesModel()
+    call_price = model.black_scholes_call(S=42.0, K=40.0, T=0.5, r=0.1, sigma=0.2)
+    assert pytest.approx(call_price, abs=1e-2) == 4.76
 
-def test_put_call_parity_holds():
-    model = OptionsPricingModel(100, 100, 1, 0.05, 0.2)
-    assert model.put_call_parity_check()['is_valid'] is True
+def test_put_call_parity_multiple_cases() -> None:
+    
+    model = BlackScholesModel()
+    test_cases = [
+        {"S": 100.0, "K": 100.0, "T": 1.0, "r": 0.05, "sigma": 0.2},
+        {"S": 42.0, "K": 40.0, "T": 0.5, "r": 0.1, "sigma": 0.2}
+    ]
+    for case in test_cases:
+        call = model.black_scholes_call(case["S"], case["K"], case["T"], case["r"], case["sigma"])
+        put = model.black_scholes_put(case["S"], case["K"], case["T"], case["r"], case["sigma"])
+        assert model.put_call_parity_check(case["S"], case["K"], case["T"], case["r"], call, put) is True
 
-def test_strategy_payoff_put_differs_from_call():
-    # This test locks in the exact bug you just fixed
-    S_range = np.array([80, 100, 120])
-    call_payoff = option_strategy_payoff(['long_call'], S_range, [100], [5], [1])
-    put_payoff = option_strategy_payoff(['long_put'], S_range, [100], [5], [1])
-    assert not np.array_equal(call_payoff, put_payoff)
+def test_regression_long_put_payoff() -> None:
+    
+    model = BlackScholesModel()
+    stock_prices = np.array([30.0, 40.0, 50.0])
+    strike = 40.0
+    premium = 2.0
+    
+    payoffs = model.option_strategy_payoff("long_put", stock_prices, strike, premium)
+    
+    
+    assert payoffs[0] == 8.0

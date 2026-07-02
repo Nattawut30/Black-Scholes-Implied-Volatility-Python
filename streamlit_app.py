@@ -29,6 +29,8 @@ from src.pricing_model import (
     quick_price
 )
 
+bs_model = BlackScholesModel()
+
 # PAGE CONFIGURATION
 st.set_page_config(
     page_title="Options Pricing Analyzer",
@@ -124,7 +126,13 @@ def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):
     return call_prices, put_prices
     
 def create_strategy_payoff(strategy_type, stock_price_range, K, premium, spot_price=None):
-    return bs_model.option_strategy_payoff(strategy_type, stock_price_range, K, premium, spot_price)
+    return bs_model.option_strategy_payoff(
+        strategy_type=strategy_type, 
+        stock_price_range=stock_price_range, 
+        K=K, 
+        premium=premium, 
+        spot_price=spot_price
+    )
 
 def export_to_csv(data, filename):
     """Export calculation results to CSV"""

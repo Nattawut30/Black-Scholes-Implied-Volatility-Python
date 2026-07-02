@@ -434,7 +434,7 @@ def quick_price(S, K, T_days, r_pct, sigma_pct, q_pct=0.0):
     sigma = sigma_pct / 100
     q = q_pct / 100
 
-    model = OptionsPricingModel(S, K, T, r, sigma, dividend_yield=q)
+    model = BlackScholesModel(stock_price=S, strike_price=K, time_to_expiry=T, risk_free_rate=r, volatility=sigma)
     
     return {
         'call_price': model.call_price(),

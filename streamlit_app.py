@@ -26,9 +26,10 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
 from src.pricing_model import BlackScholesModel
 
-bs_model = BlackScholesModel()
+bs_model = BlackScholesModel(stock_price=100.0, strike_price=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.2)
 
 # PAGE CONFIGURATION
 st.set_page_config(

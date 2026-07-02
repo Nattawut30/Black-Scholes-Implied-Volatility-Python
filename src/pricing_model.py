@@ -139,11 +139,17 @@ class BlackScholesModel:
             vanna = (-exp_neg_qT * phi_d1 * (self.d2 / self.sigma)) if self.sigma > 0 else 0.0
 
             if sqrt_T > 0 and self.sigma > 0:
-                charm = (-exp_neg_qT * phi_d1 * (
+
+                common_charm = (-exp_neg_qT * phi_d1 * (
                     2 * (self.r - self.q) * self.T - self.d2 * self.sigma * sqrt_T
                 ) / (2 * self.T * self.sigma * sqrt_T)) / 365
+                
+                
+                call_charm = (self.q * exp_neg_qT * N_d1) / 365 + common_charm
+                put_charm = (-self.q * exp_neg_qT * norm.cdf(-self.d1)) / 365 + common_charm
             else:
-                charm = 0.0
+                call_charm = 0.0
+                put_charm = 0.0
 
             return {
                 'call_delta': round(call_delta, 4),
@@ -157,7 +163,8 @@ class BlackScholesModel:
                 'put_theta': round(put_theta, 4),
                 'put_rho': round(put_rho, 4),
                 'vanna': round(vanna, 6),
-                'charm': round(charm, 6)
+                'call_charm': round(call_charm, 6),
+                'put_charm': round(put_charm, 6)
             }
         except Exception as e:
             raise ValueError(f"Error calculating Greeks: {str(e)}")

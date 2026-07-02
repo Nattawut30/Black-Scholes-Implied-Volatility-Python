@@ -7,7 +7,7 @@
 
 ***Overview***
 - 
-[![Python Project CI](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/ci.yml/badge.svg)](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions) <br>
+[![Python Project CI](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/main.yml/badge.svg)](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions) <br>
 Here: https://nattawut-blackscholes.streamlit.app/ <br>
 
 

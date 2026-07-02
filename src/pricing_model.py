@@ -16,6 +16,8 @@ Features:
 - Edge case handling and validation
 - Built on standard Black-Scholes assumptions (see README for limitations)
 
+Refactor: 02/07/2026
+
 """
 
 import numpy as np
@@ -23,45 +25,22 @@ from scipy.stats import norm
 from scipy.optimize import brentq
 import warnings
 
-
 class BlackScholesModel:
     """
     Professional Black-Scholes Options Pricing Calculator
-    
-    Handles all calculations with robust error handling and edge case protection.
-    Suitable for real-world trading analysis and educational purposes.
-    
-    Parameters:
-    -----------
-    stock_price : float
-        Current price of underlying asset (S) - must be > 0
-    strike_price : float
-        Strike/exercise price (K) - must be > 0
-    time_to_expiry : float
-        Time to expiration in years (T) - must be > 0
-    risk_free_rate : float
-        Annual risk-free rate as decimal (r) - typically 0.01 to 0.10
-    volatility : float
-        Annual volatility as decimal (sigma) - must be > 0
     """
-    
-    # Class constants for validation
     MIN_STOCK_PRICE = 0.01
     MIN_STRIKE_PRICE = 0.01
-    MIN_TIME = 0.000001  # Approximately 30 seconds
-    MIN_VOLATILITY = 0.0001  # 0.01%
-    MAX_VOLATILITY = 5.0  # 500%
-    MIN_RATE = -0.1  # -10%
-    MAX_RATE = 1.0  # 100%
+    MIN_TIME = 0.000001  
+    MIN_VOLATILITY = 0.0001  
+    MAX_VOLATILITY = 5.0  
+    MIN_RATE = -0.1  
+    MAX_RATE = 1.0  
 
-    def __init__(self, stock_price, strike_price, time_to_expiry, risk_free_rate, volatility, dividend_yield=0.0):
+    def __init__(self, stock_price=100.0, strike_price=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.2, dividend_yield=0.0):
         """Initialize with validation and error handling"""
+        self._validate_inputs(stock_price, strike_price, time_to_expiry, risk_free_rate, volatility, dividend_yield)
         
-        # Validate inputs
-        self._validate_inputs(stock_price, strike_price, time_to_expiry,
-                              risk_free_rate, volatility, dividend_yield)
-        
-        # Store validated parameters
         self.S = float(stock_price)
         self.K = float(strike_price)
         self.T = float(time_to_expiry)
@@ -69,7 +48,6 @@ class BlackScholesModel:
         self.sigma = float(volatility)
         self.q = float(dividend_yield)
         
-        # Calculate d1 and d2 safely
         self.d1 = self._calculate_d1()
         self.d2 = self._calculate_d2()
     
@@ -84,78 +62,35 @@ class BlackScholesModel:
             raise ValueError(f"Volatility (sigma) must be at least {self.MIN_VOLATILITY}")
     
     def _calculate_d1(self):
-        """
-        Calculate d1 component with numerical stability
-        
-        d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-        """
         try:
             numerator = np.log(self.S / self.K) + (self.r - self.q + 0.5 * self.sigma ** 2) * self.T
             denominator = self.sigma * np.sqrt(self.T)
-            
-            # Handle edge case where denominator is very small
             if denominator < 1e-10:
                 return 0.0
-            
             return numerator / denominator
         except Exception as e:
             raise ValueError(f"Error calculating d1: {str(e)}")
     
     def _calculate_d2(self):
-        """
-        Calculate d2 component
-        
-        d2 = d1 - σ√T
-        """
         return self.d1 - self.sigma * np.sqrt(self.T)
     
     def call_price(self) -> float:
-        """
-        Calculate European Call Option Price
-        
-        call_price = S * np.exp(-q * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
-        
-        Returns:
-        --------
-        float : Call option price
-        """
         try:
             call = (self.S * np.exp(-self.q * self.T) * norm.cdf(self.d1) -
                     self.K * np.exp(-self.r * self.T) * norm.cdf(self.d2))
-            return max(0.0, round(call, 4))  # Ensure non-negative
+            return max(0.0, round(call, 4))
         except Exception as e:
             raise ValueError(f"Error calculating call price: {str(e)}")
     
     def put_price(self) -> float:
-        """
-        Calculate European Put Option Price
-        
-        put_price  = K * np.exp(-r * T) * norm.cdf(-d2) - S * np.exp(-q * T) * norm.cdf(-d1)
-        
-        Returns:
-        --------
-        float : Put option price
-        """
         try:
             put = (self.K * np.exp(-self.r * self.T) * norm.cdf(-self.d2) -
                    self.S * np.exp(-self.q * self.T) * norm.cdf(-self.d1))
-            return max(0.0, round(put, 4))  # Ensure non-negative
+            return max(0.0, round(put, 4))
         except Exception as e:
             raise ValueError(f"Error calculating put price: {str(e)}")
     
     def intrinsic_value(self, option_type='call'):
-        """
-        Calculate intrinsic value (immediate exercise value)
-        
-        Parameters:
-        -----------
-        option_type : str
-            'call' or 'put'
-        
-        Returns:
-        --------
-        float : Intrinsic value
-        """
         if option_type.lower() == 'call':
             return max(0, self.S - self.K)
         elif option_type.lower() == 'put':
@@ -164,20 +99,6 @@ class BlackScholesModel:
             raise ValueError("option_type must be 'call' or 'put'")
     
     def time_value(self, option_type='call'):
-        """
-        Calculate time value (extrinsic value)
-        
-        Time Value = Option Price - Intrinsic Value
-        
-        Parameters:
-        -----------
-        option_type : str
-            'call' or 'put'
-        
-        Returns:
-        --------
-        float : Time value
-        """
         if option_type.lower() == 'call':
             return self.call_price() - self.intrinsic_value('call')
         elif option_type.lower() == 'put':
@@ -186,37 +107,21 @@ class BlackScholesModel:
             raise ValueError("option_type must be 'call' or 'put'")
     
     def get_greeks(self):
-        """
-        Calculate all option Greeks (risk sensitivities)
-        
-        Returns:
-        --------
-        dict : Complete set of Greeks for both call and put options
-        """
         try:
             sqrt_T = np.sqrt(self.T)
             exp_neg_rT = np.exp(-self.r * self.T)
-            
-            # Shared calculations
             phi_d1 = norm.pdf(self.d1)
             N_d1 = norm.cdf(self.d1)
             N_neg_d1 = norm.cdf(-self.d1)
             N_d2 = norm.cdf(self.d2)
             N_neg_d2 = norm.cdf(-self.d2)
-            
             exp_neg_qT = np.exp(-self.q * self.T)
 
-            # Delta: ∂V/∂S — adjusted for continuous dividend yield
             call_delta = exp_neg_qT * N_d1
             put_delta = exp_neg_qT * (N_d1 - 1)
-
-            # Gamma: ∂²V/∂S² — same for call and put
             gamma = (phi_d1 * exp_neg_qT) / (self.S * self.sigma * sqrt_T) if self.S * self.sigma * sqrt_T > 0 else 0
-
-            # Vega: ∂V/∂σ — per 1% change in volatility
             vega = (self.S * exp_neg_qT * phi_d1 * sqrt_T) / 100
 
-            # Theta: ∂V/∂T — per calendar day, BSM adjusted
             call_theta = (
                 -(self.S * exp_neg_qT * phi_d1 * self.sigma) / (2 * sqrt_T)
                 - self.r * self.K * exp_neg_rT * N_d2
@@ -229,16 +134,10 @@ class BlackScholesModel:
                 - self.q * self.S * exp_neg_qT * N_neg_d1
             ) / 365
 
-            # Rho: ∂V/∂r — per 1% change in rate
             call_rho = (self.K * self.T * exp_neg_rT * N_d2) / 100
             put_rho = -(self.K * self.T * exp_neg_rT * N_neg_d2) / 100
-
-            # Vanna: ∂Delta/∂σ — how delta shifts as volatility moves
-            # Desks use this to manage delta exposure when vol spikes
             vanna = (-exp_neg_qT * phi_d1 * (self.d2 / self.sigma)) if self.sigma > 0 else 0.0
 
-            # Charm: -∂Delta/∂t — rate of delta decay per calendar day
-            # Critical for overnight and weekend risk management
             if sqrt_T > 0 and self.sigma > 0:
                 charm = (-exp_neg_qT * phi_d1 * (
                     2 * (self.r - self.q) * self.T - self.d2 * self.sigma * sqrt_T
@@ -247,42 +146,27 @@ class BlackScholesModel:
                 charm = 0.0
 
             return {
-                # First-order Greeks — Call
                 'call_delta': round(call_delta, 4),
                 'call_gamma': round(gamma, 4),
                 'call_vega': round(vega, 4),
                 'call_theta': round(call_theta, 4),
                 'call_rho': round(call_rho, 4),
-
-                # First-order Greeks — Put
                 'put_delta': round(put_delta, 4),
                 'put_gamma': round(gamma, 4),
                 'put_vega': round(vega, 4),
                 'put_theta': round(put_theta, 4),
                 'put_rho': round(put_rho, 4),
-
-                # Second-order Greeks
                 'vanna': round(vanna, 6),
                 'charm': round(charm, 6)
             }
-            
         except Exception as e:
             raise ValueError(f"Error calculating Greeks: {str(e)}")
     
     def put_call_parity_check(self):
-        """
-        Verify Put-Call Parity relationship
-        
-        Put-Call Parity: C - P = S - K·e^(-rT)
-        
-        Returns:
-        --------
-        dict : Parity check results
-        """
         left_side = self.call_price() - self.put_price()
         right_side = self.S - self.K * np.exp(-self.r * self.T)
         difference = abs(left_side - right_side)
-        is_valid = difference < 0.01  # Allow small numerical errors
+        is_valid = difference < 0.01
         
         return {
             'is_valid': is_valid,
@@ -291,151 +175,61 @@ class BlackScholesModel:
             'difference': round(difference, 4)
         }
 
-
-def calculate_implied_volatility(
-        self, 
-        market_price: float, 
-        stock_price: float, 
-        strike_price: float,
-        time_to_expiry: float, 
-        risk_free_rate: float, 
-        option_type: str = 'call',
-        dividend_yield: float = 0.0) -> float | None:
-        
-    """
-    Calculate implied volatility using Brent's method (guaranteed convergence within given volatility bounds)
-    
-    This is the volatility that makes the Black-Scholes price equal to the market price.
-    CRITICAL for real-world trading - traders use IV more than theoretical prices!
-    
-    Parameters:
-    -----------
-    market_price : float
-        Observed market price of the option
-    stock_price : float
-        Current stock price
-    strike_price : float
-        Strike price
-    time_to_expiry : float
-        Time to expiry in years
-    risk_free_rate : float
-        Risk-free rate as decimal
-    option_type : str
-        'call' or 'put'
-    
-    Returns:
-    --------
-    float : Implied volatility as decimal (e.g., 0.25 for 25%)
-    """
-    
-    def objective_function(sigma):
-        """Function to minimize: BS_price - market_price"""
-        try:
-            model = OptionsPricingModel(stock_price, strike_price, time_to_expiry,
-                                            risk_free_rate, sigma, dividend_yield=dividend_yield)
-            if option_type.lower() == 'call':
-                return model.call_price() - market_price
-            else:
-                return model.put_price() - market_price
-        except Exception:
-            return float('inf')
-    
-    try:
-        return float(brentq(objective_function, 1e-6, 5.0))
-    except (ValueError, RuntimeError) as e:
-    
-        import logging
-        logging.error(f"Implied Volatility calculation failed due to mathematical limits: {e}")
-        return None
-
-
-def calculate_historical_volatility(price_series, periods=252):
-    """
-    Calculate historical volatility from price data
-    
-    Parameters:
-    -----------
-    price_series : array-like
-        Historical price data
-    periods : int
-        Number of periods per year (252 for daily, 52 for weekly)
-    
-    Returns:
-    --------
-    float : Annualized historical volatility as decimal
-    """
-    try:
-        prices = np.array(price_series)
-        
-        if len(prices) < 2:
-            raise ValueError("Need at least 2 price points")
-        
-        # Calculate log returns
-        returns = np.log(prices[1:] / prices[:-1])
-        
-        # Calculate volatility
-        volatility = np.std(returns) * np.sqrt(periods)
-        
-        return round(volatility, 4)
-    
-    except Exception as e:
-        raise ValueError(f"Error calculating historical volatility: {str(e)}")
-
-def option_strategy_payoff(self, strategy_type: str, stock_price_range: np.ndarray, K: float, premium: float, spot_price: float | None = None) -> np.ndarray:
-
+    def option_strategy_payoff(self, strategy_type: str, stock_price_range: np.ndarray, K: float, premium: float, spot_price: float | None = None) -> np.ndarray:
         strategy = strategy_type.lower().replace(" ", "_")
         if spot_price is None:
             spot_price = K 
 
         if strategy == 'long_call':
             return np.maximum(stock_price_range - K, 0) - premium
-            
         elif strategy == 'long_put':
             return np.maximum(K - stock_price_range, 0) - premium
-            
         elif strategy == 'covered_call':
-            
             return (stock_price_range - spot_price) + (premium - np.maximum(stock_price_range - K, 0))
-            
         elif strategy == 'protective_put':
-            
             return (stock_price_range - spot_price) + (np.maximum(K - stock_price_range, 0) - premium)
-            
         elif strategy == 'long_straddle':
-            
             return np.maximum(stock_price_range - K, 0) + np.maximum(K - stock_price_range, 0) - premium
-            
         elif strategy == 'short_straddle':
-            
             return premium - np.maximum(stock_price_range - K, 0) - np.maximum(K - stock_price_range, 0)
-            
         else:
             raise ValueError(f"Unknown strategy type: {strategy_type}")
 
-# Convenience function for quick calculations
+def calculate_implied_volatility(market_price: float, stock_price: float, strike_price: float, time_to_expiry: float, risk_free_rate: float, option_type: str = 'call', dividend_yield: float = 0.0) -> float | None:
+    def objective_function(sigma):
+        try:
+            model = BlackScholesModel(stock_price, strike_price, time_to_expiry, risk_free_rate, sigma, dividend_yield=dividend_yield)
+            if option_type.lower() == 'call':
+                return model.call_price() - market_price
+            else:
+                return model.put_price() - market_price
+        except Exception:
+            return float('inf')
+    try:
+        return float(brentq(objective_function, 1e-6, 5.0))
+    except (ValueError, RuntimeError) as e:
+        import logging
+        logging.error(f"Implied Volatility calculation failed due to mathematical limits: {e}")
+        return None
+
+def calculate_historical_volatility(price_series, periods=252):
+    try:
+        prices = np.array(price_series)
+        if len(prices) < 2:
+            raise ValueError("Need at least 2 price points")
+        returns = np.log(prices[1:] / prices[:-1])
+        volatility = np.std(returns) * np.sqrt(periods)
+        return round(volatility, 4)
+    except Exception as e:
+        raise ValueError(f"Error calculating historical volatility: {str(e)}")
+
 def quick_price(S, K, T_days, r_pct, sigma_pct, q_pct=0.0):
-    """
-    Quick option pricing with intuitive inputs
-    
-    Parameters:
-    -----------
-    S : float - Stock price ($)
-    K : float - Strike price ($)
-    T_days : int - Days to expiry
-    r_pct : float - Risk-free rate (%)
-    sigma_pct : float - Volatility (%)
-    
-    Returns:
-    --------
-    dict : Call price, put price, and Greeks
-    """
     T = T_days / 365
     r = r_pct / 100
     sigma = sigma_pct / 100
     q = q_pct / 100
 
-    model = BlackScholesModel(stock_price=S, strike_price=K, time_to_expiry=T, risk_free_rate=r, volatility=sigma)
-    
+    model = BlackScholesModel(S, K, T, r, sigma, dividend_yield=q)
     return {
         'call_price': model.call_price(),
         'put_price': model.put_price(),

@@ -30,4 +30,4 @@ jobs:
 
     - name: Run Test Suite (Pytest)
       run: |
-        pytest test_pricing_model.py
+        pytest tests/

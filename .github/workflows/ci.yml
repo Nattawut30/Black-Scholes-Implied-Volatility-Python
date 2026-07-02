@@ -30,4 +30,5 @@ jobs:
 
     - name: Run Test Suite (Pytest)
       run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
         pytest tests/

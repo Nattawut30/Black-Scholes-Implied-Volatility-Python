@@ -26,12 +26,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
-from src.pricing_model import (
-    OptionsPricingModel,
-    calculate_implied_volatility,
-    calculate_historical_volatility,
-    quick_price
-)
+from src.pricing_model import BlackScholesModel
 
 bs_model = BlackScholesModel()
 

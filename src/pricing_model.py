@@ -224,7 +224,7 @@ def calculate_historical_volatility(price_series, periods=252):
         raise ValueError(f"Error calculating historical volatility: {str(e)}")
         
 # Convenience function for quick calculations
-def quick_price(S: float, K: float, T_days: int, r_pct: float, sigma_pct: float,) -> dict:
+def quick_price(S: float, K: float, T_days: int, r_pct: float, sigma_pct: float) -> dict:
 
     """
     Quick option pricing with intuitive inputs
@@ -240,7 +240,7 @@ def quick_price(S: float, K: float, T_days: int, r_pct: float, sigma_pct: float,
         strike_price=K,
         time_to_expiry=T,
         risk_free_rate=r,
-        volatility=sigma
+        volatility=sigma,
         dividend_yield=q
     )
     

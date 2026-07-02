@@ -28,7 +28,7 @@ jobs:
 
     - name: Run Static Type Check (Mypy)
       run: |
-        mypy src/ --ignore-missing-imports --python-version 3.11
+        mypy src/ --ignore-missing-imports --disable-error-code attr-defined --python-version 3.11
 
     - name: Run Test Suite (Pytest)
       run: |

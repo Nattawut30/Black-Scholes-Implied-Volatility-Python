@@ -73,34 +73,16 @@ class OptionsPricingModel:
         self.d1 = self._calculate_d1()
         self.d2 = self._calculate_d2()
     
-    def _validate_inputs(self, S, K, T, r, sigma, q=0.0):
-        """
-        Validate all inputs to prevent calculation errors
+    def _validate_inputs(self, S: float, K: float, T: float, r: float, sigma: float) -> None:
         
-        Raises:
-        -------
-        ValueError : If any input is invalid
-        """
-        if S <= 0:
-            raise ValueError(f"Stock price must be positive. Got: {S}")
-        
-        if K <= 0:
-            raise ValueError(f"Strike price must be positive. Got: {K}")
-        
-        if T <= 0:
-            raise ValueError(f"Time to expiry must be positive. Got: {T}")
-        
-        if sigma <= 0:
-            raise ValueError(f"Volatility must be positive. Got: {sigma}")
-        
-        if sigma > self.MAX_VOLATILITY:
-            raise ValueError(f"Volatility too high (max {self.MAX_VOLATILITY*100}%). Got: {sigma*100}%")
-        
-        if r < self.MIN_RATE or r > self.MAX_RATE:
-            raise ValueError(f"Risk-free rate must be between {self.MIN_RATE*100}% and {self.MAX_RATE*100}%")
-            
-        if q < -0.1 or q > 0.5:
-            raise ValueError(f"Dividend yield must be between -10% and 50%. Got: {q*100:.1f}%")
+        if S < self.MIN_STOCK_PRICE:
+            raise ValueError(f"Stock price (S) must be at least {self.MIN_STOCK_PRICE}")
+        if K < self.MIN_STRIKE_PRICE:
+            raise ValueError(f"Strike price (K) must be at least {self.MIN_STRIKE_PRICE}")
+        if T < self.MIN_TIME:
+            raise ValueError(f"Time to maturity (T) must be at least {self.MIN_TIME}")
+        if sigma < self.MIN_VOLATILITY:
+            raise ValueError(f"Volatility (sigma) must be at least {self.MIN_VOLATILITY}")
     
     def _calculate_d1(self):
         """

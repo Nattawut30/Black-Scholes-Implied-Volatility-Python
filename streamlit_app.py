@@ -543,9 +543,14 @@ if 'results' in st.session_state:
             )
         with col_c:
             st.metric(
-                "Charm",
-                f"{greeks['charm']:.6f}",
-                help="−∂Delta/∂t — Daily rate of delta decay. Critical for overnight and weekend risk management."
+                "Call Charm",
+                f"{greeks['call_charm']:.6f}",
+                help="−∂Delta_Call/∂t — Declining of Call Delta Per day"
+            )
+            st.metric(
+                "Put Charm",
+                f"{greeks['put_charm']:.6f}",
+                help="−∂Delta_Put/∂t — Changing of Put Delta Per day"
             )
     
     # TAB 2: PRICE SENSITIVITY

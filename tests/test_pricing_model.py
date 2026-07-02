@@ -7,14 +7,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.pricing_model import BlackScholesModel
 
 def test_textbook_reference_value() -> None:
-    
+
     model = BlackScholesModel(stock_price=42.0, strike_price=40.0, time_to_expiry=0.5, risk_free_rate=0.1, volatility=0.2)
     call_price = model.black_scholes_call(S=42.0, K=40.0, T=0.5, r=0.1, sigma=0.2)
     assert pytest.approx(call_price, abs=1e-2) == 4.76
 
 def test_put_call_parity_multiple_cases() -> None:
     
-    model = BlackScholesModel(stock_price=42.0, strike_price=40.0, time_to_expiry=0.5, risk_free_rate=0.1, volatility=0.2)
+    model = BlackScholesModel(stock_price=100.0, strike_price=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.2)
     test_cases = [
         {"S": 100.0, "K": 100.0, "T": 1.0, "r": 0.05, "sigma": 0.2},
         {"S": 42.0, "K": 40.0, "T": 0.5, "r": 0.1, "sigma": 0.2}
@@ -26,7 +26,7 @@ def test_put_call_parity_multiple_cases() -> None:
 
 def test_regression_long_put_payoff() -> None:
     
-    model = BlackScholesModel(stock_price=42.0, strike_price=40.0, time_to_expiry=0.5, risk_free_rate=0.1, volatility=0.2)
+    model = BlackScholesModel(stock_price=100.0, strike_price=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.2)
     stock_prices = np.array([30.0, 40.0, 50.0])
     strike = 40.0
     premium = 2.0

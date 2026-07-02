@@ -396,21 +396,36 @@ def calculate_historical_volatility(price_series, periods=252):
     except Exception as e:
         raise ValueError(f"Error calculating historical volatility: {str(e)}")
 
-def option_strategy_payoff(strategy_type, stock_price_range, strike_prices,
-                            premiums, positions):
-    payoff = np.zeros_like(stock_price_range)
-    
-    for K, premium, pos, s_type in zip(strike_prices, premiums, positions, strategy_type):
-        if 'call' in s_type.lower():
-            intrinsic = np.maximum(stock_price_range - K, 0)
-        elif 'put' in s_type.lower():
-            intrinsic = np.maximum(K - stock_price_range, 0)
+def option_strategy_payoff(self, strategy_type: str, stock_price_range: np.ndarray, K: float, premium: float, spot_price: float | None = None) -> np.ndarray:
+
+        strategy = strategy_type.lower().replace(" ", "_")
+        if spot_price is None:
+            spot_price = K 
+
+        if strategy == 'long_call':
+            return np.maximum(stock_price_range - K, 0) - premium
+            
+        elif strategy == 'long_put':
+            return np.maximum(K - stock_price_range, 0) - premium
+            
+        elif strategy == 'covered_call':
+            
+            return (stock_price_range - spot_price) + (premium - np.maximum(stock_price_range - K, 0))
+            
+        elif strategy == 'protective_put':
+            
+            return (stock_price_range - spot_price) + (np.maximum(K - stock_price_range, 0) - premium)
+            
+        elif strategy == 'long_straddle':
+            
+            return np.maximum(stock_price_range - K, 0) + np.maximum(K - stock_price_range, 0) - premium
+            
+        elif strategy == 'short_straddle':
+            
+            return premium - np.maximum(stock_price_range - K, 0) - np.maximum(K - stock_price_range, 0)
+            
         else:
-            raise ValueError(f"Unknown strategy_type: {s_type}")
-        
-        payoff += pos * (intrinsic - premium)
-    
-    return payoff
+            raise ValueError(f"Unknown strategy type: {strategy_type}")
 
 # Convenience function for quick calculations
 def quick_price(S, K, T_days, r_pct, sigma_pct, q_pct=0.0):

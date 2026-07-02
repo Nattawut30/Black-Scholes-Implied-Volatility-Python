@@ -33,8 +33,6 @@ from src.pricing_model import (
     quick_price
 )
 
-bs_model = BlackScholesModel()
-
 # PAGE CONFIGURATION
 st.set_page_config(
     page_title="Options Pricing Analyzer",

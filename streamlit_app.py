@@ -60,17 +60,34 @@ if 'calculation_history' not in st.session_state:
 @st.cache_data(ttl=300)
 def fetch_stock_data(ticker, period='1mo'):
     try:
-        stock = yf.Ticker(ticker)
-        info = stock.info
-        if 'regularMarketPrice' not in info and 'currentPrice' not in info:
-             return None, None
-             
+        import requests
+        
+        session = requests.Session()
+        session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+        })
+        
+        
+        stock = yf.Ticker(ticker, session=session)
         hist = stock.history(period=period)
+        
+        
+        if hist.empty:
+            hist = yf.download(ticker, period=period, session=session, progress=False)
+            
         if hist.empty:
             return None, None
             
-        current_price = hist['Close'].iloc[-1]
-        hist_vol = calculate_historical_volatility(hist['Close'].values)
+        
+        if 'Close' in hist.columns:
+            close_data = hist['Close']
+            if isinstance(close_data, pd.DataFrame):
+                close_data = close_data.iloc[:, 0]
+        else:
+            return None, None
+            
+        current_price = float(close_data.iloc[-1])
+        hist_vol = calculate_historical_volatility(close_data.values)
         return current_price, hist_vol
     except Exception as e:
         return None, None

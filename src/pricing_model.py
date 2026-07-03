@@ -58,8 +58,12 @@ class BlackScholesModel:
             raise ValueError(f"Strike price (K) must be at least {self.MIN_STRIKE_PRICE}")
         if T < self.MIN_TIME:
             raise ValueError(f"Time to maturity (T) must be at least {self.MIN_TIME}")
-        if sigma < self.MIN_VOLATILITY:
-            raise ValueError(f"Volatility (sigma) must be at least {self.MIN_VOLATILITY}")
+        if sigma > self.MAX_VOLATILITY:
+            raise ValueError(f"Volatility (sigma) must not exceed {self.MAX_VOLATILITY}")
+        if r < self.MIN_RATE:
+            raise ValueError(f"Risk-free rate (r) must be at least {self.MIN_RATE}")
+        if r > self.MAX_RATE:
+            raise ValueError(f"Risk-free rate (r) must not exceed {self.MAX_RATE}")
     
     def _calculate_d1(self):
         try:

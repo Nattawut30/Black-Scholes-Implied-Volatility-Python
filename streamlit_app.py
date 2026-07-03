@@ -412,7 +412,7 @@ if 'results' in st.session_state:
         st.markdown('<div class="success-box"><b>Put-Call Parity Verified</b> - Calculations are mathematically consistent (Difference: $' + f"{parity['difference']:.4f}" + ')</div>', unsafe_allow_html=True)
     
     # RECOMMENDATIONS
-    st.markdown("## Trading Recommendations")
+    st.markdown("## Trading Insights")
     recommendations = get_recommendation(
         params['stock_price'],
         params['strike_price'],
@@ -433,9 +433,9 @@ if 'results' in st.session_state:
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "Greeks Analysis",
         "Price Sensitivity",
-        "Strategy Builder",
+        "Heat Map",
         "Advanced Analysis",
-        "History & Export"
+        "History and Export"
     ])
     
     # TAB 1: GREEKS
@@ -645,7 +645,7 @@ if 'results' in st.session_state:
         fig.update_layout(height=500, hovermode='x unified')
         st.plotly_chart(fig, use_container_width=True)
         
-    # TAB 3: SIMPLE HEATMAP (แทนที่ Strategy Builder)
+    # TAB 3: SIMPLE HEATMAP
     with tab3:
         st.markdown("### Heatmap")
         

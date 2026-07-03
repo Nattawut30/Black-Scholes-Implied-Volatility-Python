@@ -217,7 +217,7 @@ def calculate_implied_volatility(market_price: float, stock_price: float, strike
         except Exception:
             return float('inf')
     try:
-        return float(brentq(objective_function, 1e-6, 5.0))
+        return float(brentq(objective_function, BlackScholesModel.MIN_VOLATILITY, BlackScholesModel.MAX_VOLATILITY))
     except (ValueError, RuntimeError) as e:
         import logging
         logging.error(f"Implied Volatility calculation failed due to mathematical limits: {e}")

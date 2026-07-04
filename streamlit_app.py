@@ -69,7 +69,7 @@ def fetch_stock_data(ticker, period='1mo'):
         
         
         stock = yf.Ticker(ticker, session=session)
-        hist = stock.history(period=period)
+        hist = stock.history(period=period, timeout=10)
         
         
         if hist.empty:

@@ -1,1 +1,31 @@
+name: Keep Streamlit App Awake
 
+on:
+  schedule:
+    - cron: '0 */10 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install chromium --with-deps
+
+      - name: Visit the app like a real browser
+        run: |
+          python -c "
+          from playwright.sync_api import sync_playwright
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              page = browser.new_page()
+              page.goto('https://nattawut-blackscholes.streamlit.app', timeout=60000)
+              page.wait_for_timeout(8000)
+              browser.close()
+          "

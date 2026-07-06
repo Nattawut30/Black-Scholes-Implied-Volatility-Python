@@ -37,7 +37,7 @@ from src.pricing_model import (
 # PAGE CONFIGURATION
 st.set_page_config(
     page_title="Options Pricing Analyzer",
-    page_icon="📊",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -176,14 +176,14 @@ def get_recommendation(stock_price, strike_price, call_price, put_price, call_in
     return recommendations
 
 # HEADER
-st.markdown('<div class="main-header">📊 Options Pricing Analyzer</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header"> Options Pricing Analyzer</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Black-Scholes Model for European Options</div>', unsafe_allow_html=True)
 
 # SIDEBAR
 st.sidebar.header("⚙️ Configuration")
 
 # Reset button
-if st.sidebar.button("🔄 Reset All Values", use_container_width=True):
+if st.sidebar.button("Reset All Values", use_container_width=True):
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.rerun()
@@ -764,7 +764,7 @@ if 'results' in st.session_state:
                         )])
                         
                         fig.update_layout(
-                            title='Call Option Price Surface',
+                            title='Option Price Surface',
                             scene=dict(
                                 xaxis_title='Stock Price ($)',
                                 yaxis_title='Volatility (%)',
@@ -836,10 +836,10 @@ st.markdown("""
         <p style='font-size: 0.9em; margin-top: 1rem;'>
             Created by <b>Nattawut Boonnoon</b><br>
             <a href="https://www.linkedin.com/in/nattawut-bn" target="_blank" style="color: #0077b5; text-decoration: none;">
-                🔗 LinkedIn Profile (Click)
+                 LinkedIn Profile (Click)
             </a> • 
             <a href="https://github.com/Nattawut30" target="_blank" style="color: #0077b5; text-decoration: none;">
-                💻 GitHub Profile (Click)
+                 GitHub Profile (Click)
             </a>
         </p>
         <p style='font-size: 0.8em; color: #999; margin-top: 1rem;'>

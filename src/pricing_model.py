@@ -175,7 +175,7 @@ class BlackScholesModel:
     
     def put_call_parity_check(self):
         left_side = self.call_price() - self.put_price()
-        right_side = self.S - self.K * np.exp(-self.r * self.T)
+        right_side = self.S * np.exp(-self.q * self.T) - self.K * np.exp(-self.r * self.T)
         difference = abs(left_side - right_side)
         is_valid = difference < 0.01
         

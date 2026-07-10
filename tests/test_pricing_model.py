@@ -126,19 +126,3 @@ def test_put_call_parity_with_dividend_yield() -> None:
     result = model.put_call_parity_check()
     assert bool(result["is_valid"]) is True
     assert result["difference"] < 0.01
-def test_put_call_parity_with_dividend_yield() -> None:
-    """Regression test: put_call_parity_check() must discount the spot side
-    by the dividend yield (S * e^-qT), not just use raw S. Without this,
-    the parity check falsely flags correctly-priced options as invalid
-    whenever dividend_yield != 0."""
-    model = BlackScholesModel(
-        stock_price=100.0,
-        strike_price=105.0,
-        time_to_expiry=0.75,
-        risk_free_rate=0.04,
-        volatility=0.28,
-        dividend_yield=0.015
-    )
-    result = model.put_call_parity_check()
-    assert bool(result["is_valid"]) is True
-    assert result["difference"] < 0.01

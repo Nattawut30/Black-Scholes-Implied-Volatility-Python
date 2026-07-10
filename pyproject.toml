@@ -8,12 +8,12 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
-streamlit = "^1.59.1"
-numpy = "^1.26.4"
-scipy = "^1.12.0"
-pandas = "^2.2.1"
+streamlit = "1.35.0"
+numpy = "1.26.4"
+scipy = "1.12.0"
+pandas = "2.2.2"
 plotly = "^5.19.0"
-yfinance = "^1.5.1"
+yfinance = "0.2.40"
 altair = "^5.2.0"
 
 [tool.poetry.group.dev.dependencies]

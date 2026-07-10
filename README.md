@@ -8,8 +8,7 @@
 ***Overview***
 - 
 [![Python Project CI](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/main.yml/badge.svg)](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions) <br>
-Here: https://black-scholes-nattawut.streamlit.app/ <br>
-
+Here:  <br>
 
 This is my options pricing models analysis that combines educational clarity with real-world utility. It uses the Black-Scholes model to price European options and includes advanced features like implied volatility calculation, strategy analysis, and live market data integration. Built with Python and Streamlit, it serves both learning and practical analysis.
 

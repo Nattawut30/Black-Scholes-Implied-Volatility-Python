@@ -1,0 +1,43 @@
+
+[project]
+name = "black-scholes-implied-volatility"
+version = "1.0.0"
+description = "Black-Scholes options pricing, Greeks, and implied volatility calculator with a Streamlit UI."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Nattawut Boonnoon", email = "nattawut.boonnoon@hotmail.com" }
+]
+dependencies = [
+    "streamlit>=1.32.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "plotly>=5.0.0",
+    "yfinance>=0.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "mypy>=1.5.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+# NOTE for deployment: Streamlit Community Cloud only reads a pyproject.toml
+# if it is written in Poetry's format ([tool.poetry] section). This file uses
+# the plain, tool-agnostic PEP 621 format instead, purely for local dev,
+# pytest configuration, and editor/IDE tooling. requirements.txt remains the
+# file that Streamlit Community Cloud actually installs from — do not delete
+# it, and keep both files' dependency lists in sync by hand when you add a
+# new package.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

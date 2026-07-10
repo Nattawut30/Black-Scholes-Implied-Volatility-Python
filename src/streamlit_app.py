@@ -56,27 +56,34 @@ if 'calculation_history' not in st.session_state:
 @st.cache_data(ttl=300)
 def fetch_stock_data(ticker, period='1mo'):
     try:
-        # Cut requests.Session() & User-Agent for safe protocals
+        # 1. เปลี่ยนมาใช้ Ticker().history แทน yf.download เพื่อตัดระบบ Multi-threading ทิ้งถาวร ป้องกัน Segfault
         stock = yf.Ticker(ticker)
-        hist = stock.history(period=period, timeout=10)
+        hist = stock.history(period=period, auto_adjust=True, timeout=10)
 
-        if hist.empty:
-            hist = yf.download(ticker, period=period, progress=False, threads=False)
-
-        if hist.empty:
+        if hist.empty or 'Close' not in hist.columns:
             return None, None
 
-        if 'Close' in hist.columns:
-            close_data = hist['Close']
-            if isinstance(close_data, pd.DataFrame):
-                close_data = close_data.iloc[:, 0]
-        else:
+        close_data = hist['Close']
+        if isinstance(close_data, pd.DataFrame):
+            close_data = close_data.iloc[:, 0]
+
+        # 2. ล้างค่า NaN ออกให้หมด ห้ามให้เล็ดลอดไปถึง scipy/numpy เด็ดขาด
+        close_data = close_data.dropna()
+        if len(close_data) < 2:
             return None, None
 
         current_price = float(close_data.iloc[-1])
-        hist_vol = calculate_historical_volatility(close_data.values)
+        
+        # คำนวณ Historical Volatility แบบปลอดภัย
+        log_returns = np.log(close_data / close_data.shift(1)).dropna()
+        if log_returns.empty:
+            return None, None
+            
+        hist_vol = float(np.std(log_returns) * np.sqrt(252))
         return current_price, hist_vol
-    except Exception as e:
+
+    except Exception:
+        # ถ้าเกิด Error หรือโดนบล็อก ให้ส่ง None กลับออกไปอย่างปลอดภัย ไม่ปล่อยให้เธรดค้างจน Segfault
         return None, None
 
 def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):
@@ -205,12 +212,13 @@ if input_method == "Fetch Live Data":
         with st.spinner(f"Fetching data for {ticker}..."):
             current_price, hist_vol = fetch_stock_data(ticker)
             
-            if current_price:
+            if current_price is not None and hist_vol is not None:
                 st.session_state.fetched_price = current_price
                 st.session_state.fetched_vol = hist_vol * 100
                 st.sidebar.success(f"Loaded {ticker}: ${current_price:.2f}")
             else:
-                st.sidebar.error("Failed to fetch data. Check ticker symbol.")
+                st.sidebar.error("⚠️ เซิร์ฟเวอร์โดน Yahoo Finance จำกัดสัญญาณ หรือใส่ Ticker ผิด กรุณาลองใหม่หรือใช้โหมด Manual Entry")
+                st.stop()  # สั่งหยุดรันทันทีตรงนี้ ไม่ปล่อยให้โค้ดข้างล่างรันต่อจนแครชซ้ำ
 
 # Parameters input
 st.sidebar.markdown("### Option Parameters")

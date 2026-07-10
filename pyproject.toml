@@ -9,12 +9,12 @@ authors = [
     { name = "Nattawut Boonnoon", email = "nattawut.boonnoon@hotmail.com" }
 ]
 dependencies = [
-    "streamlit>=1.32.0",
-    "pandas>=2.0.0",
-    "numpy>=1.24.0",
-    "scipy>=1.10.0",
-    "plotly>=5.0.0",
-    "yfinance>=0.2.0",
+    "streamlit (>=1.32.0)",
+    "pandas (>=2.0.0)",
+    "numpy (>=1.24.0)",
+    "scipy (>=1.10.0)",
+    "plotly (>=5.0.0)",
+    "yfinance (>=0.2.0)",
 ]
 
 [project.optional-dependencies]
@@ -41,3 +41,9 @@ include = ["src*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)",
+    "mypy (>=2.2.0,<3.0.0)"
+]

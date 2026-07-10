@@ -1,49 +1,31 @@
-
-[project]
-name = "black-scholes-implied-volatility"
+[tool.poetry]
+name = "black-scholes-implied-volatility-python"
 version = "1.0.0"
-description = "Black-Scholes options pricing, Greeks, and implied volatility calculator with a Streamlit UI."
+description = "Black-Scholes Options Pricing and Implied Volatility Analyzer"
+authors = ["Nattawut Boonnoon <nattawut.boonnoon@hotmail.com>"]
 readme = "README.md"
-requires-python = ">=3.10"
-authors = [
-    { name = "Nattawut Boonnoon", email = "nattawut.boonnoon@hotmail.com" }
-]
-dependencies = [
-    "streamlit (>=1.32.0)",
-    "pandas (>=2.0.0)",
-    "numpy (>=1.24.0)",
-    "scipy (>=1.10.0)",
-    "plotly (>=5.0.0)",
-    "yfinance (>=0.2.0)",
-]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.4.0",
-    "mypy>=1.5.0",
-]
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.59.1"
+numpy = "^1.26.4"
+scipy = "^1.12.0"
+pandas = "^2.2.1"
+plotly = "^5.19.0"
+yfinance = "^1.5.1"
+altair = "^5.2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.1.1"
+mypy = "^2.2.0"
 
 [build-system]
-requires = ["setuptools>=68.0"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-include = ["src*"]
-
-# NOTE for deployment: Streamlit Community Cloud only reads a pyproject.toml
-# if it is written in Poetry's format ([tool.poetry] section). This file uses
-# the plain, tool-agnostic PEP 621 format instead, purely for local dev,
-# pytest configuration, and editor/IDE tooling. requirements.txt remains the
-# file that Streamlit Community Cloud actually installs from — do not delete
-# it, and keep both files' dependency lists in sync by hand when you add a
-# new package.
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
 pythonpath = ["."]
+testpaths = ["tests"]
 
-[dependency-groups]
-dev = [
-    "pytest (>=9.1.1,<10.0.0)",
-    "mypy (>=2.2.0,<3.0.0)"
-]
+[tool.mypy]
+ignore_missing_imports = true

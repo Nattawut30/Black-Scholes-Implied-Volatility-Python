@@ -56,32 +56,23 @@ if 'calculation_history' not in st.session_state:
 @st.cache_data(ttl=300)
 def fetch_stock_data(ticker, period='1mo'):
     try:
-        import requests
-        
-        session = requests.Session()
-        session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
-        })
-        
-        
-        stock = yf.Ticker(ticker, session=session)
+        # Cut requests.Session() & User-Agent for safe protocals
+        stock = yf.Ticker(ticker)
         hist = stock.history(period=period, timeout=10)
-        
-        
+
         if hist.empty:
-            hist = yf.download(ticker, period=period, session=session, progress=False)
-            
+            hist = yf.download(ticker, period=period, progress=False, threads=False)
+
         if hist.empty:
             return None, None
-            
-        
+
         if 'Close' in hist.columns:
             close_data = hist['Close']
             if isinstance(close_data, pd.DataFrame):
                 close_data = close_data.iloc[:, 0]
         else:
             return None, None
-            
+
         current_price = float(close_data.iloc[-1])
         hist_vol = calculate_historical_volatility(close_data.values)
         return current_price, hist_vol
@@ -680,7 +671,7 @@ if 'results' in st.session_state:
     with tab4:
         st.markdown("### Advanced Analysis Tools")
 
-        with st.expander("What is the Volatility Smile?, Why the surface is never flat?"):
+        with st.expander("Understanding Volatility Smile?"):
             st.markdown("""
             **Black-Scholes assumes constant volatility** across all strikes and maturities. The market disagrees.
     

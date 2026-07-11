@@ -1,10 +1,14 @@
-.PHONY: install-dev check test
+.PHONY: install test dashboard clean
 
-install-dev:
+install:
 	poetry install
 
-check:
-	poetry run mypy src/ --ignore-missing-imports --disable-error-code attr-defined
-
 test:
-	PYTHONPATH=. poetry run pytest tests/
+	poetry run pytest tests/
+
+dashboard:
+	poetry run streamlit run src/streamlit_app.py
+
+clean:
+	find . -type d -name "__pycache__" -exec rm -r {} +
+	find . -type d -name ".pytest_cache" -exec rm -r {} +

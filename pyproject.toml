@@ -1,0 +1,33 @@
+[tool.poetry]
+package-mode = false
+
+[project]
+name = "black-scholes-implied-volatility"
+version = "0.1.0"
+description = "Options pricing analyzer using the Black-Scholes model with implied volatility, strategy payoff, and live market data via Streamlit"
+authors = [
+    {name = "Nattawut Boonnoon"}
+]
+readme = "README.md"
+requires-python = "^3.11"
+dependencies = [
+    "streamlit (==1.35.0)",
+    "yfinance (>=1.5.1,<2.0.0)",
+    "numpy (==1.26.4)",
+    "scipy (==1.12.0)",
+    "pandas (==2.2.2)",
+    "plotly (==5.24.1)"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)"
+]

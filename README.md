@@ -7,11 +7,16 @@
 
 ***Overview***
 - 
-Here:  <br>
+Here: https://nattawut-black-scholes.streamlit.app/ <br>
 
-This is my options pricing models analysis that combines educational clarity with real-world utility. It uses the Black-Scholes model to price European options and includes advanced features like implied volatility calculation, strategy analysis, and live market data integration. Built with Python and Streamlit, it serves both learning and practical analysis.
+Updated: July 2026 <br>
+- Resolved fault memory issues related to SciPy and Streamlit.
+- Updated the project on the master/main branch and resolved CI problems.
+- Migrated dependency management to Poetry.
 
-![Demo Homepage](photo/homepage.png)
+This is my options pricing models analysis that combines educational clarity with real-world utility. It uses the Black-Scholes model to price European options and includes advanced features like implied volatility calculation, strategy analysis, and live market data integration.
+
+![Demo Homepage](photo/home.png)
 ![Demo heatmap](photo/heatmap.png)
 
 # <p align="center">What is Black-Scholes pricing model? <p/>

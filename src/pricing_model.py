@@ -21,9 +21,63 @@ Refactor: 02/07/2026
 """
 
 import numpy as np
-from scipy.stats import norm
-from scipy.optimize import brentq
+import math
 import warnings
+
+
+def _norm_cdf(x: float) -> float:
+    """Standard normal CDF using math.erf (pure Python, no C-extension)."""
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def _norm_pdf(x: float) -> float:
+    """Standard normal PDF using math (pure Python, no C-extension)."""
+    return math.exp(-0.5 * x * x) / math.sqrt(2.0 * math.pi)
+
+
+def _bisect_root(f, a: float, b: float, tol: float = 1e-8, max_iter: int = 200):
+    """
+    Pure-Python bisection root finder (drop-in replacement for scipy.optimize.brentq
+    for this monotonic objective function). Raises ValueError if the sign doesn't
+    change across [a, b], matching brentq's behavior.
+    """
+    fa, fb = f(a), f(b)
+    if fa == 0.0:
+        return a
+    if fb == 0.0:
+        return b
+    if fa * fb > 0:
+        raise ValueError("f(a) and f(b) must have different signs")
+
+    for _ in range(max_iter):
+        mid = (a + b) / 2.0
+        fmid = f(mid)
+        if fmid == 0.0 or (b - a) / 2.0 < tol:
+            return mid
+        if fa * fmid < 0:
+            b, fb = mid, fmid
+        else:
+            a, fa = mid, fmid
+    return (a + b) / 2.0
+
+
+class _norm:
+    """Drop-in replacement object mimicking scipy.stats.norm's .cdf/.pdf interface,
+    so the rest of the file (norm.cdf(...), norm.pdf(...)) needs no other changes."""
+    @staticmethod
+    def cdf(x):
+        return _norm_cdf(x)
+
+    @staticmethod
+    def pdf(x):
+        return _norm_pdf(x)
+
+
+norm = _norm()
+
+
+def brentq(f, a, b):
+    return _bisect_root(f, a, b)
 
 class BlackScholesModel:
     """

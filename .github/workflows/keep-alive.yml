@@ -1,4 +1,4 @@
-name: Keep Streamlit App Awake
+name: Streamlit Heartbeat Service
 
 on:
   schedule:

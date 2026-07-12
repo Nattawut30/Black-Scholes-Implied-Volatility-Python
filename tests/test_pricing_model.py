@@ -126,3 +126,17 @@ def test_put_call_parity_with_dividend_yield() -> None:
     result = model.put_call_parity_check()
     assert bool(result["is_valid"]) is True
     assert result["difference"] < 0.01
+
+def test_scenario_analysis_shape_and_monotonicity():
+    from src.pricing_model import scenario_analysis
+    rows = scenario_analysis(S=100, K=100, T_days=180, r_pct=5, sigma_pct=25, q_pct=0)
+    assert len(rows) == 7
+    call_prices = [r['call_price'] for r in rows]
+    put_prices = [r['put_price'] for r in rows]
+    assert all(call_prices[i] <= call_prices[i + 1] for i in range(len(call_prices) - 1))
+    assert all(put_prices[i] >= put_prices[i + 1] for i in range(len(put_prices) - 1))
+
+def test_scenario_analysis_extreme_negative_shock_does_not_crash():
+    from src.pricing_model import scenario_analysis
+    rows = scenario_analysis(S=0.02, K=100, T_days=180, r_pct=5, sigma_pct=25, shocks=(-0.99,))
+    assert rows[0]['stock_price'] >= 0.01

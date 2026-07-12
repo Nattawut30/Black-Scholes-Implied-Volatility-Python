@@ -31,7 +31,8 @@ from pricing_model import (
     calculate_implied_volatility, 
     calculate_historical_volatility, 
     quick_price,
-    calculate_strategy_payoff
+    calculate_strategy_payoff,
+    scenario_analysis
 )
 
 # PAGE CONFIGURATION
@@ -410,21 +411,45 @@ if 'results' in st.session_state:
     if parity['is_valid']:
         st.markdown('<div class="success-box"><b>Put-Call Parity Verified</b> - Calculations are mathematically consistent (Difference: $' + f"{parity['difference']:.4f}" + ')</div>', unsafe_allow_html=True)
     
-    # RECOMMENDATIONS
-    st.markdown("## Trading Insights")
-    recommendations = get_recommendation(
-        params['stock_price'],
-        params['strike_price'],
-        results['call_price'],
-        results['put_price'],
-        results['call_intrinsic'],
-        results['put_intrinsic']
+    # SCENARIO ANALYSIS (replaces Trading Insights)
+    st.markdown("## Scenario Analysis")
+    st.caption("Stress-test option prices if the stock moves \u00b110% / \u00b120% / \u00b130% from today's price.")
+
+    scenarios = scenario_analysis(
+        S=params['stock_price'],
+        K=params['strike_price'],
+        T_days=params['days_to_expiry'],
+        r_pct=params['risk_free_rate'],
+        sigma_pct=params['volatility'],
+        q_pct=params['dividend_yield'],
     )
-    
-    for rec in recommendations:
-        st.markdown(f'<div class="info-box">{rec}</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="warning-box"><b>Disclaimer:</b> These are analytical insights based on current market conditions.</div>', unsafe_allow_html=True)
+
+    shock_labels = [f"{s['shock_pct']:+.0f}%" for s in scenarios]
+    call_values = [s['call_price'] for s in scenarios]
+    put_values = [s['put_price'] for s in scenarios]
+
+    fig_scenario = go.Figure()
+    fig_scenario.add_trace(go.Bar(
+        x=shock_labels, y=call_values, name='Call Price',
+        marker_color='#2ca02c', text=[f"${v:.2f}" for v in call_values], textposition='outside',
+    ))
+    fig_scenario.add_trace(go.Bar(
+        x=shock_labels, y=put_values, name='Put Price',
+        marker_color='#d62728', text=[f"${v:.2f}" for v in put_values], textposition='outside',
+    ))
+    fig_scenario.update_layout(
+        barmode='group', xaxis_title='Stock Price Shock', yaxis_title='Option Price ($)',
+        height=420, margin=dict(t=20, b=20),
+        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
+    )
+    st.plotly_chart(fig_scenario, use_container_width=True)
+
+    with st.expander("See underlying stock prices for each scenario"):
+        scenario_df = pd.DataFrame(scenarios).rename(columns={
+            'shock_pct': 'Shock (%)', 'stock_price': 'Stock Price ($)',
+            'call_price': 'Call Price ($)', 'put_price': 'Put Price ($)',
+        })
+        st.dataframe(scenario_df, use_container_width=True, hide_index=True)
     
     st.markdown("---")
     

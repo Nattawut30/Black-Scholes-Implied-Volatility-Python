@@ -325,3 +325,65 @@ def quick_price(
 
         "parity_check": model.put_call_parity_check()
     }
+
+
+def scenario_analysis(
+    S: float,
+    K: float,
+    T_days: int,
+    r_pct: float,
+    sigma_pct: float,
+    q_pct: float = 0.0,
+    shocks=(-0.30, -0.20, -0.10, 0.0, 0.10, 0.20, 0.30),
+) -> list:
+    """
+    Stress-test option prices under stock-price shocks (e.g. -30% to +30%).
+    Reuses quick_price() so the pricing logic stays in exactly one place —
+    this function only shifts the stock price and re-prices.
+
+    Returns a list of dicts, one per shock:
+        {'shock_pct': -30.0, 'stock_price': 70.00, 'call_price': ..., 'put_price': ...}
+    """
+    results = []
+    for shock in shocks:
+        shocked_price = S * (1 + shock)
+        # Clamp to the model's minimum valid stock price so an extreme
+        # negative shock on an already-cheap stock can't raise a ValueError
+        # and break the whole table.
+        shocked_price = max(shocked_price, BlackScholesModel.MIN_STOCK_PRICE)
+        priced = quick_price(shocked_price, K, T_days, r_pct, sigma_pct, q_pct)
+        results.append({
+            'shock_pct': round(shock * 100, 1),
+            'stock_price': round(shocked_price, 2),
+            'call_price': priced['call_price'],
+            'put_price': priced['put_price'],
+        })
+    return results
+
+
+def scenario_analysis(
+    S: float,
+    K: float,
+    T_days: int,
+    r_pct: float,
+    sigma_pct: float,
+    q_pct: float = 0.0,
+    shocks=(-0.30, -0.20, -0.10, 0.0, 0.10, 0.20, 0.30),
+) -> list:
+    """
+    Stress-test option prices under stock-price shocks (e.g. -30% to +30%).
+    Reuses quick_price() so the pricing logic stays in exactly one place —
+    this function only shifts the stock price and re-prices.
+    """
+    results = []
+    for shock in shocks:
+        shocked_price = S * (1 + shock)
+        shocked_price = max(shocked_price, BlackScholesModel.MIN_STOCK_PRICE)
+        priced = quick_price(shocked_price, K, T_days, r_pct, sigma_pct, q_pct)
+        results.append({
+            'shock_pct': round(shock * 100, 1),
+            'stock_price': round(shocked_price, 2),
+            'call_price': priced['call_price'],
+            'put_price': priced['put_price'],
+        })
+    return results

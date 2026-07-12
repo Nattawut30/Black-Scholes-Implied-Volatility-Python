@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Streamlit app to keep it awake
-        run: curl -sL --max-time 30 https://nattawut-black-scholes.streamlit.app > /dev/null
+        run: curl -sL --max-time 30 https://nattawut-blsm.streamlit.app > /dev/null

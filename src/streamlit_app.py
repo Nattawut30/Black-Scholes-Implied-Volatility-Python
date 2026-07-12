@@ -148,7 +148,7 @@ st.markdown('<div class="sub-header">Black-Scholes Model for European Options</d
 st.sidebar.header("⚙️ Configuration")
 
 # Reset button
-if st.sidebar.button("Reset All Values", use_container_width=True):
+if st.sidebar.button("Reset All Values", width='stretch'):
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.rerun()
@@ -232,7 +232,7 @@ st.sidebar.markdown("---")
 calculate_btn = st.sidebar.button(
     "Calculate Options",
     type="primary",
-    use_container_width=True
+    width='stretch'
 )
 
 # MAIN CALCULATION
@@ -358,14 +358,14 @@ if 'results' in st.session_state:
         height=420, margin=dict(t=20, b=20),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
     )
-    st.plotly_chart(fig_scenario, use_container_width=True)
+    st.plotly_chart(fig_scenario, width='stretch')
 
     with st.expander("See underlying stock prices for each scenario"):
         scenario_df = pd.DataFrame(scenarios).rename(columns={
             'shock_pct': 'Shock (%)', 'stock_price': 'Stock Price ($)',
             'call_price': 'Call Price ($)', 'put_price': 'Put Price ($)',
         })
-        st.dataframe(scenario_df, use_container_width=True, hide_index=True)
+        st.dataframe(scenario_df, width='stretch', hide_index=True)
     
     st.markdown("---")
     
@@ -408,7 +408,7 @@ if 'results' in st.session_state:
             }
             
             df_call = pd.DataFrame(greeks_data_call)
-            st.dataframe(df_call, use_container_width=True, hide_index=True)
+            st.dataframe(df_call, width='stretch', hide_index=True)
             
             fig_delta_call = go.Figure(go.Indicator(
                 mode="gauge+number",
@@ -425,7 +425,7 @@ if 'results' in st.session_state:
                                   'thickness': 0.75,
                                   'value': 0.5}}))
             fig_delta_call.update_layout(height=250)
-            st.plotly_chart(fig_delta_call, use_container_width=True)
+            st.plotly_chart(fig_delta_call, width='stretch')
         
         with col2:
             st.markdown("#### Put Option Greeks")
@@ -449,7 +449,7 @@ if 'results' in st.session_state:
             }
             
             df_put = pd.DataFrame(greeks_data_put)
-            st.dataframe(df_put, use_container_width=True, hide_index=True)
+            st.dataframe(df_put, width='stretch', hide_index=True)
             
             fig_delta_put = go.Figure(go.Indicator(
                 mode="gauge+number",
@@ -466,7 +466,7 @@ if 'results' in st.session_state:
                                   'thickness': 0.75,
                                   'value': 0.5}}))
             fig_delta_put.update_layout(height=250)
-            st.plotly_chart(fig_delta_put, use_container_width=True)
+            st.plotly_chart(fig_delta_put, width='stretch')
         
         with st.expander("Understanding Greeks"):
             st.markdown("""
@@ -583,7 +583,7 @@ if 'results' in st.session_state:
         fig.update_yaxes(title_text="Option Price ($)", row=1, col=1)
         
         fig.update_layout(height=500, hovermode='x unified')
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
     # TAB 3: SIMPLE HEATMAP
     with tab3:
@@ -618,7 +618,7 @@ if 'results' in st.session_state:
             yaxis_title="ความผันผวน (Volatility %)",
             height=450
         )
-        st.plotly_chart(fig_heat, use_container_width=True)
+        st.plotly_chart(fig_heat, width='stretch')
     
     # TAB 4: ADVANCED ANALYSIS
     with tab4:
@@ -714,7 +714,7 @@ if 'results' in st.session_state:
                             margin=dict(l=0, r=0, b=0, t=40)
                         )
                         
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width='stretch')
                     except Exception as e:
                         st.error(f"Error generating surface: {str(e)}")
     
@@ -724,7 +724,7 @@ if 'results' in st.session_state:
         
         if st.session_state.calculation_history:
             history_df = pd.DataFrame(st.session_state.calculation_history)
-            st.dataframe(history_df, use_container_width=True)
+            st.dataframe(history_df, width='stretch')
             
             col1, col2 = st.columns(2)
             

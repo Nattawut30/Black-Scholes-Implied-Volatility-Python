@@ -7,7 +7,7 @@
 
 ***Overview***
 - 
-Here: <br>
+Here: https://nattawut-black-scholes.streamlit.app/ <br>
 
 Updated: July 2026 <br>
 - Resolved fault memory issues related to SciPy and Streamlit.
@@ -49,12 +49,10 @@ N(x) = Cumulative normal distribution <br>
 # <p align="center">Acknowledgments<p/>
 
 **Dependencies:**
-- `streamlit` - Web app framework
+- `streamlit` - Webapp framework
 - `pandas` - Data manipulation
 - `numpy` - Numerical calculations
-- `scipy` - Statistical functions
 - `plotly` - Interactive charts
-- `yfinance` - Fetching data
 
 **Academic Papers:**
 - Black, F., & Scholes, M. (1973). *"The Pricing of Options and Corporate Liabilities"*

@@ -23,7 +23,6 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import yfinance as yf
 from datetime import datetime
 
 from pricing_model import (
@@ -57,39 +56,6 @@ st.markdown("""
 
 if 'calculation_history' not in st.session_state:
     st.session_state.calculation_history = []
-
-@st.cache_data(ttl=300)
-def fetch_stock_data(ticker, period='1mo'):
-    try:
-        # 1. เปลี่ยนมาใช้ Ticker().history แทน yf.download เพื่อตัดระบบ Multi-threading ทิ้งถาวร ป้องกัน Segfault
-        stock = yf.Ticker(ticker)
-        hist = stock.history(period=period, auto_adjust=True, timeout=10)
-
-        if hist.empty or 'Close' not in hist.columns:
-            return None, None
-
-        close_data = hist['Close']
-        if isinstance(close_data, pd.DataFrame):
-            close_data = close_data.iloc[:, 0]
-
-        # 2. ล้างค่า NaN ออกให้หมด ห้ามให้เล็ดลอดไปถึง scipy/numpy เด็ดขาด
-        close_data = close_data.dropna()
-        if len(close_data) < 2:
-            return None, None
-
-        current_price = float(close_data.iloc[-1])
-        
-        # คำนวณ Historical Volatility แบบปลอดภัย
-        log_returns = np.log(close_data / close_data.shift(1)).dropna()
-        if log_returns.empty:
-            return None, None
-            
-        hist_vol = float(np.std(log_returns) * np.sqrt(252))
-        return current_price, hist_vol
-
-    except Exception:
-        # ถ้าเกิด Error หรือโดนบล็อก ให้ส่ง None กลับออกไปอย่างปลอดภัย ไม่ปล่อยให้เธรดค้างจน Segfault
-        return None, None
 
 def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):
     call_prices = np.zeros((len(sigma_range), len(S_range)))
@@ -196,56 +162,16 @@ calc_mode = st.sidebar.radio(
     help="Choose your analysis depth"
 )
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### Input Method")
-
-input_method = st.sidebar.radio(
-    "Choose input method:",
-    ["Manual Entry", "Fetch Live Data"],
-    help="Manual for custom scenarios, Live for real market data"
-)
-
-# Live data fetching
-if input_method == "Fetch Live Data":
-    ticker = st.sidebar.text_input(
-        "Stock Ticker",
-        value="AAPL",
-        help="Enter stock symbol (e.g., AAPL, TSLA, MSFT)"
-    ).upper()
-    
-    if st.sidebar.button("Fetch Real-Time Data"):
-        with st.spinner(f"Fetching data for {ticker}..."):
-            current_price, hist_vol = fetch_stock_data(ticker)
-            
-            if current_price is not None and hist_vol is not None:
-                st.session_state.fetched_price = current_price
-                st.session_state.fetched_vol = hist_vol * 100
-                st.sidebar.success(f"Loaded {ticker}: ${current_price:.2f}")
-            else:
-                st.sidebar.error("⚠️ เซิร์ฟเวอร์โดน Yahoo Finance จำกัดสัญญาณ หรือใส่ Ticker ผิด กรุณาลองใหม่หรือใช้โหมด Manual Entry")
-                st.stop()  # สั่งหยุดรันทันทีตรงนี้ ไม่ปล่อยให้โค้ดข้างล่างรันต่อจนแครชซ้ำ
-
-# Parameters input
 st.sidebar.markdown("### Option Parameters")
 
-if input_method == "Fetch Live Data" and 'fetched_price' in st.session_state:
-    stock_price = st.sidebar.number_input(
-        "Current Stock Price ($)",
-        min_value=0.01,
-        max_value=100000.0,
-        value=float(st.session_state.fetched_price),
-        step=0.01,
-        format="%.2f"
-    )
-else:
-    stock_price = st.sidebar.number_input(
-        "Current Stock Price ($)",
-        min_value=0.01,
-        max_value=100000.0,
-        value=100.0,
-        step=1.0,
-        format="%.2f"
-    )
+stock_price = st.sidebar.number_input(
+    "Current Stock Price ($)",
+    min_value=0.01,
+    max_value=100000.0,
+    value=100.0,
+    step=1.0,
+    format="%.2f"
+)
 
 strike_price = st.sidebar.number_input(
     "Strike Price ($)",
@@ -274,24 +200,14 @@ days_to_expiry = st.sidebar.slider(
     help="Trading days until option expires"
 )
 
-if input_method == "Fetch Live Data" and 'fetched_vol' in st.session_state:
-    volatility = st.sidebar.slider(
-        "Volatility (% Annual)",
-        min_value=1.0,
-        max_value=200.0,
-        value=float(st.session_state.fetched_vol),
-        step=0.5,
-        help="Historical volatility pre-loaded"
-    )
-else:
-    volatility = st.sidebar.slider(
-        "Volatility (% Annual)",
-        min_value=1.0,
-        max_value=200.0,
-        value=25.0,
-        step=0.5,
-        help="Standard deviation of returns"
-    )
+volatility = st.sidebar.slider(
+    "Volatility (% Annual)",
+    min_value=1.0,
+    max_value=200.0,
+    value=25.0,
+    step=0.5,
+    help="Standard deviation of returns"
+)
 
 risk_free_rate = st.sidebar.slider(
     "Risk-Free Rate (% Annual)",

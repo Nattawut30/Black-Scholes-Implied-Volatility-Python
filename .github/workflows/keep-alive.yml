@@ -2,7 +2,7 @@ name: Keep Streamlit App Awake
 
 on:
   schedule:
-    - cron: '0 */6 * * *'   # รันทุก 6 ชั่วโมง (ปลอดภัยกว่าเกณฑ์ 12 ชม. ของ Streamlit เยอะ)
+    - cron: '0 */6 * * *'   # รันทุก 6 ชั่วโมง (ปลอดภัยกว่าเกณฑ์ 12 ชม. ของ Streamlit)
   workflow_dispatch:        # กดรันเองจากหน้า GitHub ได้ด้วย
 
 jobs:
@@ -10,4 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Streamlit app to keep it awake
-        run: curl -sL --max-time 30 https://nattawut-blsm.streamlit.app > /dev/null
+        run: |
+          curl -sL --max-redirs 20 --max-time 60 \
+            -A "Mozilla/5.0 (compatible; KeepAliveBot/1.0)" \
+            -o /dev/null -w "HTTP status: %{http_code}\n" \
+            https://nattawut-blsm.streamlit.app || true
+          echo "Ping attempt completed (any HTTP result is fine — the goal is just to reset the sleep timer)."

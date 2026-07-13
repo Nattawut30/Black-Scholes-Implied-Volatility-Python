@@ -27,9 +27,7 @@ from datetime import datetime
 from pricing_model import (
     BlackScholesModel, 
     calculate_implied_volatility, 
-    calculate_historical_volatility, 
     quick_price,
-    calculate_strategy_payoff,
     scenario_analysis
 )
 
@@ -71,31 +69,6 @@ def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):
                 put_prices[i, j] = np.nan
     return call_prices, put_prices
     
-def create_strategy_payoff(strategy_type, stock_price, K, call_premium, put_premium):
-    stock_price_range = np.linspace(stock_price * 0.5, stock_price * 1.5, 100)
-    
-    strategy = strategy_type.lower().replace(" ", "_")
-    if strategy == 'long_call':
-        premium = call_premium
-    elif strategy == 'long_put':
-        premium = put_premium
-    elif strategy == 'covered_call':
-        premium = call_premium
-    elif strategy == 'protective_put':
-        premium = put_premium
-    elif strategy in ['long_straddle', 'short_straddle']:
-        premium = call_premium + put_premium
-    else:
-        premium = 0.0
-
-    payoff = calculate_strategy_payoff(
-        strategy_type=strategy_type, 
-        stock_price_range=stock_price_range, 
-        K=K, 
-        premium=premium, 
-        spot_price=stock_price
-    )
-    return stock_price_range, payoff
 
 def export_to_csv(data, filename):
     """Export calculation results to CSV"""
@@ -103,41 +76,6 @@ def export_to_csv(data, filename):
     csv = df.to_csv(index=False)
     return csv
 
-def get_recommendation(stock_price, strike_price, call_price, put_price, call_intrinsic, put_intrinsic):
-    """Provide trading recommendation based on option analysis"""
-    moneyness = stock_price / strike_price
-    call_time_value = call_price - call_intrinsic
-    put_time_value = put_price - put_intrinsic
-    
-    recommendations = []
-    
-    # Call
-    if moneyness > 1.1:
-        recommendations.append("**CALL is Deep ITM** - Consider if you expect continued upward movement")
-    elif moneyness > 1.02:
-        recommendations.append("**CALL is ITM** - Good if you're bullish on the stock")
-    elif moneyness > 0.98:
-        recommendations.append("**CALL is ATM** - Balanced risk/reward, high gamma")
-    else:
-        recommendations.append("**CALL is OTM** - Lower cost but requires significant price increase")
-    
-    # Put
-    if moneyness < 0.9:
-        recommendations.append("**PUT is Deep ITM** - Consider if you expect continued downward movement")
-    elif moneyness < 0.98:
-        recommendations.append("**PUT is ITM** - Good if you're bearish on the stock")
-    elif moneyness < 1.02:
-        recommendations.append("**PUT is ATM** - Balanced risk/reward, high gamma")
-    else:
-        recommendations.append("**PUT is OTM** - Lower cost but requires significant price decrease")
-    
-    # Time value analysis
-    if call_time_value > call_price * 0.7:
-        recommendations.append("**High time value in calls** - May decay rapidly as expiration approaches")
-    if put_time_value > put_price * 0.7:
-        recommendations.append("**High time value in puts** - May decay rapidly as expiration approaches")
-    
-    return recommendations
 
 # HEADER
 st.markdown('<div class="main-header"> Options Pricing Analyzer</div>', unsafe_allow_html=True)

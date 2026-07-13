@@ -154,13 +154,6 @@ if st.sidebar.button("Reset All Values", width='stretch'):
 
 st.sidebar.markdown("---")
 
-# Mode selection
-calc_mode = st.sidebar.radio(
-    "Calculation Mode",
-    ["Quick Calculator", "Advanced Analysis", "Strategy Builder"],
-    help="Choose your analysis depth"
-)
-
 st.sidebar.markdown("### Option Parameters")
 
 stock_price = st.sidebar.number_input(
@@ -551,7 +544,7 @@ if 'results' in st.session_state:
     with tab4:
         st.markdown("### Advanced Analysis Tools")
 
-        with st.expander("Understanding Volatility Smile?"):
+        with st.expander("Understanding Volatility Smile"):
             st.markdown("""
             **Black-Scholes assumes constant volatility** across all strikes and maturities. The market disagrees.
     

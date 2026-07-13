@@ -22,7 +22,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from datetime import datetime
 
 from pricing_model import (
@@ -370,9 +369,8 @@ if 'results' in st.session_state:
     st.markdown("---")
     
     # TABS
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab3, tab4, tab5 = st.tabs([
         "Greeks Analysis",
-        "Price Sensitivity",
         "Heat Map",
         "Advanced Analysis",
         "History and Export"
@@ -514,77 +512,6 @@ if 'results' in st.session_state:
                 help="−∂Delta_Put/∂t — Changing of Put Delta Per day"
             )
     
-    # TAB 2: PRICE SENSITIVITY
-    with tab2:
-        st.markdown("### Price Sensitivity Analysis")
-        
-        S_range = np.linspace(stock_price * 0.7, stock_price * 1.3, 100)
-        vol_range = np.linspace(max(1, volatility - 20), volatility + 20, 100)
-        time_range = np.arange(1, min(days_to_expiry + 1, 180))
-        
-        call_prices_S = []
-        put_prices_S = []
-        call_prices_vol = []
-        put_prices_vol = []
-        call_prices_time = []
-        put_prices_time = []
-        
-        for s in S_range:
-            try:
-                model = BlackScholesModel(s, strike_price, days_to_expiry/365, 
-                                          risk_free_rate/100, volatility/100,
-                                            dividend_yield=dividend_yield/100)
-                call_prices_S.append(model.call_price())
-                put_prices_S.append(model.put_price())
-            except:
-                call_prices_S.append(np.nan)
-                put_prices_S.append(np.nan)
-        
-        for v in vol_range:
-            try:
-                model = BlackScholesModel(stock_price, strike_price, days_to_expiry/365,
-                                          risk_free_rate/100, v/100, dividend_yield=dividend_yield/100)
-                call_prices_vol.append(model.call_price())
-                put_prices_vol.append(model.put_price())
-            except:
-                call_prices_vol.append(np.nan)
-                put_prices_vol.append(np.nan)
-        
-        for t in time_range:
-            try:
-                model = BlackScholesModel(stock_price, strike_price, t/365,
-                                          risk_free_rate/100, volatility/100, dividend_yield=dividend_yield/100)
-                call_prices_time.append(model.call_price())
-                put_prices_time.append(model.put_price())
-            except:
-                call_prices_time.append(np.nan)
-                put_prices_time.append(np.nan)
-        
-        fig = make_subplots(
-            rows=1, cols=3,
-            subplot_titles=('Price vs Stock Price', 'Price vs Volatility', 'Price vs Time to Expiry'),
-            specs=[[{'type': 'scatter'}, {'type': 'scatter'}, {'type': 'scatter'}]]
-        )
-        
-        fig.add_trace(go.Scatter(x=S_range, y=call_prices_S, name='Call', line=dict(color='green', width=3)), row=1, col=1)
-        fig.add_trace(go.Scatter(x=S_range, y=put_prices_S, name='Put', line=dict(color='red', width=3)), row=1, col=1)
-        fig.add_vline(x=stock_price, line_dash="dash", line_color="blue", annotation_text="Current", row=1, col=1)
-        
-        fig.add_trace(go.Scatter(x=vol_range, y=call_prices_vol, name='Call', line=dict(color='green', width=3), showlegend=False), row=1, col=2)
-        fig.add_trace(go.Scatter(x=vol_range, y=put_prices_vol, name='Put', line=dict(color='red', width=3), showlegend=False), row=1, col=2)
-        fig.add_vline(x=volatility, line_dash="dash", line_color="blue", annotation_text="Current", row=1, col=2)
-        
-        fig.add_trace(go.Scatter(x=time_range, y=call_prices_time, name='Call', line=dict(color='green', width=3), showlegend=False), row=1, col=3)
-        fig.add_trace(go.Scatter(x=time_range, y=put_prices_time, name='Put', line=dict(color='red', width=3), showlegend=False), row=1, col=3)
-        
-        fig.update_xaxes(title_text="Stock Price ($)", row=1, col=1)
-        fig.update_xaxes(title_text="Volatility (%)", row=1, col=2)
-        fig.update_xaxes(title_text="Days to Expiry", row=1, col=3)
-        fig.update_yaxes(title_text="Option Price ($)", row=1, col=1)
-        
-        fig.update_layout(height=500, hovermode='x unified')
-        st.plotly_chart(fig, width='stretch')
-        
     # TAB 3: SIMPLE HEATMAP
     with tab3:
         st.markdown("### Heatmap")

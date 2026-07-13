@@ -140,3 +140,28 @@ def test_scenario_analysis_extreme_negative_shock_does_not_crash():
     from src.pricing_model import scenario_analysis
     rows = scenario_analysis(S=0.02, K=100, T_days=180, r_pct=5, sigma_pct=25, shocks=(-0.99,))
     assert rows[0]['stock_price'] >= 0.01
+
+@pytest.mark.parametrize(
+    "sigma",
+    [0.0, -0.2, BlackScholesModel.MIN_VOLATILITY - 1e-8],
+)
+def test_volatility_below_minimum_is_rejected(sigma: float) -> None:
+    with pytest.raises(ValueError, match="Volatility"):
+        BlackScholesModel(
+            stock_price=100.0,
+            strike_price=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=sigma,
+        )
+
+
+def test_minimum_volatility_is_accepted() -> None:
+    model = BlackScholesModel(
+        stock_price=100.0,
+        strike_price=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=BlackScholesModel.MIN_VOLATILITY,
+    )
+    assert model.call_price() >= 0.0

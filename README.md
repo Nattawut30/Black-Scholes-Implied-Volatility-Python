@@ -1,6 +1,3 @@
-[![Keep Streamlit App Awake](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml/badge.svg)](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml)
-
-
 # <p align="center"> Python: Black-Scholes Implied Volatility <p/>
 <br>**Nattawut Boonnoon**<br/>
 - LinkedIn: www.linkedin.com/in/nattawut-bn
@@ -8,7 +5,10 @@
 
 ***Overview***
 - 
-Here: https://nattawut-blsm.streamlit.app/ <br>
+[![Keep Streamlit App Awake](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml/badge.svg)](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml)
+
+Here: https://nattawut-bcm.streamlit.app/ <br>
+(If the app encounters an error, please clear your cache and cookies, then try again.)
 
 Updated: July 2026 <br>
 - Resolved fault memory issues related to SciPy and Streamlit.

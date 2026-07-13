@@ -7,7 +7,7 @@
 - 
 [![Keep Streamlit App Awake](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml/badge.svg)](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml)
 
-Here: https://nattawut-bcm.streamlit.app/ <br>
+Here: https://nattawut-blsm.streamlit.app <br>
 (If the app encounters an error, please clear your cache and cookies, then try again.)
 
 Updated: July 2026 <br>

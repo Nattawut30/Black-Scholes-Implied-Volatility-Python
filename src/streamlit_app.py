@@ -17,6 +17,7 @@ import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["ARROW_DEFAULT_MEMORY_POOL"] = "system"
 
 import streamlit as st
 import pandas as pd

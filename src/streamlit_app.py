@@ -528,7 +528,7 @@ if 'results' in st.session_state:
             market_price_input = st.number_input(
                 "Observed Market Price ($)",
                 min_value=0.01,
-                value=results['call_price'],
+                value=max(0.01, results['call_price']),
                 step=0.01
             )
             

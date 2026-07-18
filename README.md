@@ -9,7 +9,7 @@
 
 Here: https://nattawut-blsm.streamlit.app <br>
 
-Presentations Slides: 
+Presentation Slides: [Click](https://gamma.app/docs/Black-Scholes-Implied-Volatility-By-Nattawut-B-la8qpqrj0j6scxi)
 
 Updated: July 2026 <br>
 - Resolved fault memory issues related to SciPy and Streamlit.

@@ -300,7 +300,7 @@ if 'results' in st.session_state:
     fig_scenario.update_yaxes(gridcolor='#313244')
     st.plotly_chart(fig_scenario, width='stretch')
 
-    with st.expander("See underlying stock prices for each scenario"):
+    with st.expander("Stock prices for each scenario"):
         scenario_df = pd.DataFrame(scenarios).rename(columns={
             'shock_pct': 'Shock (%)', 'stock_price': 'Stock Price ($)',
             'call_price': 'Call Price ($)', 'put_price': 'Put Price ($)',
@@ -658,9 +658,6 @@ st.markdown("""
             <a href="https://github.com/Nattawut30" target="_blank" style="color: #0077b5; text-decoration: none;">
                  GitHub Profile (Click)
             </a>
-        </p>
-        <p style='font-size: 0.8em; color: #999; margin-top: 1rem;'>
-            *** For quantitative analysis and hedging strategy. ***
         </p>
     </div>
 """, unsafe_allow_html=True)

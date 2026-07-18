@@ -8,7 +8,8 @@
 [![Keep Streamlit App Awake](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml/badge.svg)](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml)
 
 Here: https://nattawut-blsm.streamlit.app <br>
-(If the app encounters an error, please clear your cache and cookies, then try again.)
+
+Presentations Slides: 
 
 Updated: July 2026 <br>
 - Resolved fault memory issues related to SciPy and Streamlit.
@@ -16,9 +17,6 @@ Updated: July 2026 <br>
 - Migrated dependency management to Poetry.
 
 This is my options pricing models analysis that combines educational clarity with real-world utility. It uses the Black-Scholes model to price European options and includes advanced features like implied volatility calculation, strategy analysis, and live market data integration.
-
-![Demo Homepage](photo/home.png)
-![Demo heatmap](photo/heatmap.png)
 
 # <p align="center">What is Black-Scholes pricing model? <p/>
 The Black-Scholes, or Black-Scholes-Merton model is a mathematical model that describes the trends of a financial market, including derivative investment instruments. The formula and model are named after the economists *Fischer Black* and *Myron Scholes*. Occasionally, attribution is also awarded to *Robert C. Merton*, who was the first to write an academic paper on the topic.
@@ -54,6 +52,7 @@ N(x) = Cumulative normal distribution <br>
 - `pandas` - Data manipulation
 - `numpy` - Numerical calculations
 - `plotly` - Interactive charts
+- `pyarrow` - Data processing
 
 **Academic Papers:**
 - Black, F., & Scholes, M. (1973). *"The Pricing of Options and Corporate Liabilities"*

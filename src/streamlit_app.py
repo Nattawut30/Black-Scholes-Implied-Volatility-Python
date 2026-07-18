@@ -43,17 +43,25 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
     <style>
-    .main-header { font-size: 3rem; font-weight: 700; background: linear-gradient(120deg, #1f77b4, #ff7f0e); -webkit-background-clip: text; -webkit-fill-color: transparent; text-align: center; padding: 1rem 0; margin-bottom: 0.5rem; }
-    .sub-header { font-size: 1.3rem; color: #666; text-align: center; margin-bottom: 2rem; }
-    .stMetric { background-color: #f8f9fa; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .success-box { background-color: #d4edda; border-left: 4px solid #28a745; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
-    .info-box { background-color: #e7f3ff; border-left: 4px solid #1f77b4; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
-    .warning-box { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    .main-header { font-size: 3rem; font-weight: 700; background: linear-gradient(120deg, #89b4fa, #cba6f7); -webkit-background-clip: text; -webkit-fill-color: transparent; text-align: center; padding: 1rem 0; margin-bottom: 0.5rem; }
+    .sub-header { font-size: 1.3rem; color: #a6adc8; text-align: center; margin-bottom: 2rem; }
+    .stMetric { background-color: #313244; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(17,17,27,0.4); }
+    .success-box { background-color: #313244; border-left: 4px solid #a6e3a1; color: #cdd6f4; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    .info-box { background-color: #313244; border-left: 4px solid #89b4fa; color: #cdd6f4; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    .warning-box { background-color: #313244; border-left: 4px solid #fab387; color: #cdd6f4; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
     </style>
 """, unsafe_allow_html=True)
 
 if 'calculation_history' not in st.session_state:
     st.session_state.calculation_history = []
+
+# Catppuccin Mocha palette for Plotly charts (Plotly figures render in their own canvas
+# and do NOT automatically pick up Streamlit's theme, so we apply it explicitly here).
+MOCHA_CHART_LAYOUT = dict(
+    paper_bgcolor='#1e1e2e',
+    plot_bgcolor='#1e1e2e',
+    font=dict(color='#cdd6f4'),
+)
 
 def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):
     call_prices = np.zeros((len(sigma_range), len(S_range)))
@@ -253,10 +261,8 @@ if 'results' in st.session_state:
             help="Premium over intrinsic value"
         )
     
-    # Put-Call Parity Check
-    parity = results['parity_check']
-    if parity['is_valid']:
-        st.markdown('<div class="success-box"><b>Put-Call Parity Verified</b> - Calculations are mathematically consistent (Difference: $' + f"{parity['difference']:.4f}" + ')</div>', unsafe_allow_html=True)
+    # Put-Call Parity Check runs internally in pricing_model.py (BlackScholesModel.put_call_parity_check)
+    # — the verification banner has been intentionally removed from the UI per user request.
     
     # SCENARIO ANALYSIS (replaces Trading Insights)
     st.markdown("## Scenario Analysis")
@@ -278,17 +284,20 @@ if 'results' in st.session_state:
     fig_scenario = go.Figure()
     fig_scenario.add_trace(go.Bar(
         x=shock_labels, y=call_values, name='Call Price',
-        marker_color='#2ca02c', text=[f"${v:.2f}" for v in call_values], textposition='outside',
+        marker_color='#a6e3a1', text=[f"${v:.2f}" for v in call_values], textposition='outside',
     ))
     fig_scenario.add_trace(go.Bar(
         x=shock_labels, y=put_values, name='Put Price',
-        marker_color='#d62728', text=[f"${v:.2f}" for v in put_values], textposition='outside',
+        marker_color='#f38ba8', text=[f"${v:.2f}" for v in put_values], textposition='outside',
     ))
     fig_scenario.update_layout(
         barmode='group', xaxis_title='Stock Price Shock', yaxis_title='Option Price ($)',
         height=420, margin=dict(t=20, b=20),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
+        **MOCHA_CHART_LAYOUT,
     )
+    fig_scenario.update_xaxes(gridcolor='#313244')
+    fig_scenario.update_yaxes(gridcolor='#313244')
     st.plotly_chart(fig_scenario, width='stretch')
 
     with st.expander("See underlying stock prices for each scenario"):
@@ -345,16 +354,18 @@ if 'results' in st.session_state:
                 value=greeks['call_delta'],
                 domain={'x': [0, 1], 'y': [0, 1]},
                 title={'text': "Call Delta"},
-                gauge={'axis': {'range': [0, 1]},
-                      'bar': {'color': "darkgreen"},
+                number={'font': {'color': '#cdd6f4'}},
+                gauge={'axis': {'range': [0, 1], 'tickcolor': '#cdd6f4'},
+                      'bar': {'color': "#a6e3a1"},
+                      'bgcolor': '#1e1e2e',
                       'steps': [
-                          {'range': [0, 0.3], 'color': "lightgray"},
-                          {'range': [0.3, 0.7], 'color': "gray"},
-                          {'range': [0.7, 1], 'color': "darkgray"}],
-                      'threshold': {'line': {'color': "red", 'width': 4},
+                          {'range': [0, 0.3], 'color': "#313244"},
+                          {'range': [0.3, 0.7], 'color': "#45475a"},
+                          {'range': [0.7, 1], 'color': "#585b70"}],
+                      'threshold': {'line': {'color': "#fab387", 'width': 4},
                                   'thickness': 0.75,
                                   'value': 0.5}}))
-            fig_delta_call.update_layout(height=250)
+            fig_delta_call.update_layout(height=250, **MOCHA_CHART_LAYOUT)
             st.plotly_chart(fig_delta_call, width='stretch')
         
         with col2:
@@ -386,16 +397,18 @@ if 'results' in st.session_state:
                 value=abs(greeks['put_delta']),
                 domain={'x': [0, 1], 'y': [0, 1]},
                 title={'text': "Put Delta (Absolute)"},
-                gauge={'axis': {'range': [0, 1]},
-                      'bar': {'color': "darkred"},
+                number={'font': {'color': '#cdd6f4'}},
+                gauge={'axis': {'range': [0, 1], 'tickcolor': '#cdd6f4'},
+                      'bar': {'color': "#f38ba8"},
+                      'bgcolor': '#1e1e2e',
                       'steps': [
-                          {'range': [0, 0.3], 'color': "lightgray"},
-                          {'range': [0.3, 0.7], 'color': "gray"},
-                          {'range': [0.7, 1], 'color': "darkgray"}],
-                      'threshold': {'line': {'color': "red", 'width': 4},
+                          {'range': [0, 0.3], 'color': "#313244"},
+                          {'range': [0.3, 0.7], 'color': "#45475a"},
+                          {'range': [0.7, 1], 'color': "#585b70"}],
+                      'threshold': {'line': {'color': "#fab387", 'width': 4},
                                   'thickness': 0.75,
                                   'value': 0.5}}))
-            fig_delta_put.update_layout(height=250)
+            fig_delta_put.update_layout(height=250, **MOCHA_CHART_LAYOUT)
             st.plotly_chart(fig_delta_put, width='stretch')
         
         with st.expander("Understanding Greeks"):
@@ -475,7 +488,8 @@ if 'results' in st.session_state:
         fig_heat.update_layout(
             xaxis_title="ราคาสินค้าอ้างอิง (Stock Price)",
             yaxis_title="ความผันผวน (Volatility %)",
-            height=450
+            height=450,
+            **MOCHA_CHART_LAYOUT,
         )
         st.plotly_chart(fig_heat, width='stretch')
     
@@ -567,10 +581,14 @@ if 'results' in st.session_state:
                             scene=dict(
                                 xaxis_title='Stock Price ($)',
                                 yaxis_title='Volatility (%)',
-                                zaxis_title='Option Price ($)'
+                                zaxis_title='Option Price ($)',
+                                xaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
+                                yaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
+                                zaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
                             ),
                             height=600,
-                            margin=dict(l=0, r=0, b=0, t=40)
+                            margin=dict(l=0, r=0, b=0, t=40),
+                            **MOCHA_CHART_LAYOUT,
                         )
                         
                         st.plotly_chart(fig, width='stretch')

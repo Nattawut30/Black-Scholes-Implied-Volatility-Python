@@ -6,6 +6,8 @@
 ***Overview***
 - 
 [![Keep Streamlit App Awake](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml/badge.svg)](https://github.com/Nattawut30/Black-Scholes-Implied-Volatility-Python/actions/workflows/keep-alive.yml)
+![Python](https://img.shields.io/badge/Python-3.12+-blue?logo=python&logoColor=white)
+[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-Ready-2088FF?logo=github-actions&logoColor=white)](https://github.com/features/actions)
 
 Here: https://nattawut-blsm.streamlit.app <br>
 

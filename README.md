@@ -55,11 +55,9 @@ Closed-form pricing like this only exists for **European** options (exercisable 
 ∂V/∂t + ½σ²S²(∂²V/∂S²) + (r-q)S(∂V/∂S) - rV = 0
 `````
 
-subject to the terminal payoff at expiry and, for American options, the constraint that the option is always worth at least its immediate exercise value. Three independent methods are computed for every price shown in the app — finite differences, Monte Carlo, and a closed-form/binomial-tree reference — so the numbers can be cross-checked against each other rather than trusted blindly.
+subject to the terminal payoff at expiry and, for American options, the constraint that the option is always worth at least its immediate exercise value. Three independent methods are computed for every price shown in the app: finite differences, Monte Carlo, and a closed-form/binomial-tree reference. so the numbers can be cross-checked against each other rather than trusted blindly.
 
 # <p align="center">Acknowledgments<p/>
-
-Numerical methods design cross-checked against Roman Paolucci's (Quant Guild) *Quantitative Researcher* project.
 
 **Dependencies:**
 - `streamlit` - Webapp framework
@@ -75,3 +73,4 @@ Numerical methods design cross-checked against Roman Paolucci's (Quant Guild) *Q
 - Cox, J. C., Ross, S. A., & Rubinstein, M. (1979). *"Option Pricing: A Simplified Approach"*
 - Rannacher, R. (1984). *"Finite Element Solution of Diffusion Problems with Irregular Data"*
 - Longstaff, F. A., & Schwartz, E. S. (2001). *"Valuing American Options by Simulation: A Simple Least-Squares Approach"*
+- Paolucci, R., Quant Guild., (2026). *"Numerical methods design cross-checked: Quantitative Researcher"*

@@ -119,7 +119,7 @@ def _cached_binomial(S, K, T, r, sigma, q, option_type, n_steps):
 
 # HEADER
 st.markdown('<div class="main-header"> Black-Scholes PDE Solver</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Finite Differences &bull; Monte Carlo &bull; Closed-Form; European &amp; American Options</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Finite Differences &bull; Monte Carlo &bull; Closed-Form &bull; European &amp; American Options</div>', unsafe_allow_html=True)
 
 # SIDEBAR
 st.sidebar.header("⚙️ Configuration")
@@ -240,7 +240,7 @@ if option_style == "American":
     )
     if mc_paths > 50000 or mc_steps > 100:
         st.sidebar.caption(":gray[American Monte Carlo (Longstaff-Schwartz) is much more "
-                            "compute-heavy than European MC, very high paths/steps may take "
+                            "compute-heavy than European MC — very high paths/steps may take "
                             "a few seconds.]")
 else:
     mc_steps = None  # European MC is an exact terminal-distribution draw; no path stepping needed
@@ -248,7 +248,7 @@ else:
 st.sidebar.markdown("---")
 
 calculate_btn = st.sidebar.button(
-    "Calculate Options",
+    "Solve PDE",
     type="primary",
     width='stretch'
 )
@@ -504,7 +504,7 @@ if 'results' in st.session_state:
     # TABS
     st.caption("The tabs below (Greeks, Heat Map, History) run on the "
                "closed-form **European** Black-Scholes model regardless of the Exercise Style "
-               "selected in the sidebar \u2014 American options have no closed-form Greeks, "
+               "selected in the sidebar. American options have no closed-form Greeks, "
                "since those require differentiating the numerical PDE solution.")
     tab_greeks, tab_heatmap, tab_history = st.tabs([
         "Greeks Analysis",

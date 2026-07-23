@@ -119,7 +119,7 @@ def _cached_binomial(S, K, T, r, sigma, q, option_type, n_steps):
 
 # HEADER
 st.markdown('<div class="main-header"> Black-Scholes PDE Solver</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Finite Differences &bull; Monte Carlo &bull; Closed-Form &mdash; European &amp; American Options</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Finite Differences &bull; Monte Carlo &bull; Closed-Form; European &amp; American Options</div>', unsafe_allow_html=True)
 
 # SIDEBAR
 st.sidebar.header("⚙️ Configuration")
@@ -240,7 +240,7 @@ if option_style == "American":
     )
     if mc_paths > 50000 or mc_steps > 100:
         st.sidebar.caption(":gray[American Monte Carlo (Longstaff-Schwartz) is much more "
-                            "compute-heavy than European MC — very high paths/steps may take "
+                            "compute-heavy than European MC, very high paths/steps may take "
                             "a few seconds.]")
 else:
     mc_steps = None  # European MC is an exact terminal-distribution draw; no path stepping needed
@@ -742,7 +742,7 @@ st.markdown("---")
 st.markdown("""
     <div style='text-align: center; color: #666; padding: 2rem 0;'>
         <h3>Black-Scholes PDE Solver</h3>
-        <p><b>Finite Differences • Monte Carlo • Closed-Form — European &amp; American Options</b></p>
+        <p><b>Finite Differences • Monte Carlo • Closed-Form • European &amp; American Options</b></p>
         <p style='font-size: 0.9em; margin-top: 1rem;'>
             Created by <b>Nattawut Boonnoon</b><br>
             <a href="https://www.linkedin.com/in/nattawut-bn" target="_blank" style="color: #0077b5; text-decoration: none;">

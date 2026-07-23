@@ -1,6 +1,6 @@
 """
-Options Pricing Calculator
-Black-Scholes Model for European Options
+Black-Scholes PDE Solver
+Finite Differences, Monte Carlo & Closed-Form — European & American Options
 
 Created By: Nattawut Boonnoon
 LinkedIn: www.linkedin.com/in/nattawut-bn
@@ -27,14 +27,19 @@ from datetime import datetime
 
 from pricing_model import (
     BlackScholesModel, 
-    calculate_implied_volatility, 
     quick_price,
-    scenario_analysis
+)
+from pde_model import (
+    crank_nicolson_price,
+    monte_carlo_european,
+    monte_carlo_american_lsm,
+    binomial_tree_american,
+    validate_pde_inputs,
 )
 
 # PAGE CONFIGURATION
 st.set_page_config(
-    page_title="Options Pricing Analyzer",
+    page_title="Black-Scholes PDE Solver",
     page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -86,9 +91,35 @@ def export_to_csv(data, filename):
     return csv
 
 
+def _closed_form_price(S, K, T, r, sigma, q, option_type):
+    model = BlackScholesModel(S, K, T, r, sigma, q)
+    return model.call_price() if option_type == "call" else model.put_price()
+
+
+@st.cache_data(show_spinner=False)
+def _cached_fd(S, K, T, r, sigma, q, option_type, exercise, M, N):
+    return crank_nicolson_price(S, K, T, r, sigma, q, option_type=option_type,
+                                 exercise=exercise, M=M, N=N)
+
+
+@st.cache_data(show_spinner=False)
+def _cached_mc_european(S, K, T, r, sigma, q, option_type, n_paths, seed):
+    return monte_carlo_european(S, K, T, r, sigma, q, option_type, n_paths, seed=seed)
+
+
+@st.cache_data(show_spinner=False)
+def _cached_mc_american(S, K, T, r, sigma, q, option_type, n_paths, n_steps, seed):
+    return monte_carlo_american_lsm(S, K, T, r, sigma, q, option_type, n_paths, n_steps, seed=seed)
+
+
+@st.cache_data(show_spinner=False)
+def _cached_binomial(S, K, T, r, sigma, q, option_type, n_steps):
+    return binomial_tree_american(S, K, T, r, sigma, q, option_type, n_steps=n_steps)
+
+
 # HEADER
-st.markdown('<div class="main-header"> Options Pricing Analyzer</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Black-Scholes Model for European Options</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header"> Black-Scholes PDE Solver</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Finite Differences &bull; Monte Carlo &bull; Closed-Form &mdash; European &amp; American Options</div>', unsafe_allow_html=True)
 
 # SIDEBAR
 st.sidebar.header("⚙️ Configuration")
@@ -129,6 +160,24 @@ elif moneyness < 0.95:
 else:
     st.sidebar.info("At-The-Money (ATM)")
 
+st.sidebar.markdown("### Contract")
+
+option_style = st.sidebar.radio(
+    "Exercise Style",
+    ["European", "American"],
+    horizontal=True,
+    help="European: exercisable only at expiry (closed-form Black-Scholes exists). "
+         "American: exercisable any time up to expiry (no closed form — priced by "
+         "finite differences and Monte Carlo, cross-checked against a binomial tree)."
+)
+
+option_type_selected = st.sidebar.radio(
+    "Option Type",
+    ["Call", "Put"],
+    horizontal=True,
+    help="Which contract the PDE / Monte Carlo / reference cards below are priced for."
+)
+
 st.sidebar.markdown("### Time & Market")
 
 days_to_expiry = st.sidebar.slider(
@@ -166,6 +215,36 @@ dividend_yield = st.sidebar.slider(
     help="Continuous dividend yield. Use 0.0 for non-dividend paying stocks like most tech companies."
 )
 
+st.sidebar.markdown("### Finite-Difference Grid")
+st.sidebar.caption("European: Crank-Nicolson (+ Rannacher start-up). American: fully implicit + Brennan-Schwartz.")
+
+fd_S_steps = st.sidebar.slider(
+    "S-steps (M)", min_value=50, max_value=400, value=300, step=10,
+    help="Number of stock-price grid points. Higher = more accurate, slower."
+)
+fd_t_steps = st.sidebar.slider(
+    "t-steps (N)", min_value=50, max_value=400, value=300, step=10,
+    help="Number of time-grid points. Higher = more accurate, slower."
+)
+
+st.sidebar.markdown("### Monte Carlo")
+mc_paths = st.sidebar.slider(
+    "Paths", min_value=5000, max_value=200000, value=50000, step=5000,
+    help="More paths tighten the 95% confidence interval (error shrinks like 1/sqrt(paths))."
+)
+if option_style == "American":
+    mc_steps = st.sidebar.slider(
+        "Exercise dates (steps)", min_value=10, max_value=150, value=50, step=10,
+        help="Longstaff-Schwartz needs discrete exercise dates. More steps = closer to "
+             "true continuous exercise, slower to compute."
+    )
+    if mc_paths > 50000 or mc_steps > 100:
+        st.sidebar.caption(":gray[American Monte Carlo (Longstaff-Schwartz) is much more "
+                            "compute-heavy than European MC — very high paths/steps may take "
+                            "a few seconds.]")
+else:
+    mc_steps = None  # European MC is an exact terminal-distribution draw; no path stepping needed
+
 st.sidebar.markdown("---")
 
 calculate_btn = st.sidebar.button(
@@ -185,7 +264,37 @@ if calculate_btn or 'results' in st.session_state:
             sigma_pct=volatility,
             q_pct=dividend_yield
         )
-        
+
+        # --- PDE / Monte Carlo / reference engines (rebrand: requirements 3 & 4) ---
+        S_, K_, T_, r_, sig_, q_ = (
+            stock_price, strike_price, days_to_expiry / 365,
+            risk_free_rate / 100, volatility / 100, dividend_yield / 100,
+        )
+        opt_lower = option_type_selected.lower()
+        exercise_lower = option_style.lower()
+        validate_pde_inputs(S_, K_, T_, r_, sig_, q_)
+
+        fd_result = _cached_fd(S_, K_, T_, r_, sig_, q_, opt_lower, exercise_lower,
+                                fd_S_steps, fd_t_steps)
+
+        if exercise_lower == "european":
+            mc_result = _cached_mc_european(S_, K_, T_, r_, sig_, q_, opt_lower, mc_paths, 42)
+            reference_price = _closed_form_price(S_, K_, T_, r_, sig_, q_, opt_lower)
+            reference_label = "Closed-Form (Analytic)"
+        else:
+            mc_result = _cached_mc_american(S_, K_, T_, r_, sig_, q_, opt_lower, mc_paths, mc_steps, 42)
+            reference_price = _cached_binomial(S_, K_, T_, r_, sig_, q_, opt_lower, 1500)
+            reference_label = "Reference (Binomial Tree, N=1500)"
+
+        st.session_state.pde_results = {
+            'fd': fd_result,
+            'mc': mc_result,
+            'reference_price': reference_price,
+            'reference_label': reference_label,
+            'option_type': opt_lower,
+            'exercise': exercise_lower,
+        }
+
         st.session_state.results = results
         st.session_state.params = {
             'stock_price': stock_price,
@@ -221,104 +330,190 @@ if 'results' in st.session_state:
     greeks = results['greeks']
     
     # OPTION PRICES - SIDE BY SIDE
-    st.markdown("## Option Prices")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### CALL OPTION")
-        st.metric(
-            "Call Price",
-            f"${results['call_price']:.2f}",
-            help="European Call Option Price"
-        )
-        st.metric(
-            "Intrinsic Value",
-            f"${results['call_intrinsic']:.2f}",
-            help="Immediate exercise value"
-        )
-        st.metric(
-            "Time Value",
-            f"${results['call_time_value']:.2f}",
-            help="Premium over intrinsic value"
-        )
-    
-    with col2:
-        st.markdown("### PUT OPTION")
-        st.metric(
-            "Put Price",
-            f"${results['put_price']:.2f}",
-            help="European Put Option Price"
-        )
-        st.metric(
-            "Intrinsic Value",
-            f"${results['put_intrinsic']:.2f}",
-            help="Immediate exercise value"
-        )
-        st.metric(
-            "Time Value",
-            f"${results['put_time_value']:.2f}",
-            help="Premium over intrinsic value"
-        )
-    
-    # Put-Call Parity Check runs internally in pricing_model.py (BlackScholesModel.put_call_parity_check)
-    # — the verification banner has been intentionally removed from the UI per user request.
-    
-    # SCENARIO ANALYSIS (replaces Trading Insights)
-    st.markdown("## Scenario Analysis")
-    st.caption("Stress-test option prices if the stock moves \u00b110% / \u00b120% / \u00b130% from today's price.")
+    pde = st.session_state.pde_results
+    fd = pde['fd']
+    mc = pde['mc']
+    ref_price = pde['reference_price']
+    ref_label = pde['reference_label']
+    opt_lbl = pde['option_type']
+    is_american = pde['exercise'] == 'american'
 
-    scenarios = scenario_analysis(
-        S=params['stock_price'],
-        K=params['strike_price'],
-        T_days=params['days_to_expiry'],
-        r_pct=params['risk_free_rate'],
-        sigma_pct=params['volatility'],
-        q_pct=params['dividend_yield'],
-    )
+    # GOVERNING EQUATION & CONDITIONS
+    st.markdown("## Governing Equation & Conditions")
+    st.latex(r"\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 "
+             r"\frac{\partial^2 V}{\partial S^2} + (r-q) S \frac{\partial V}{\partial S} - rV = 0")
 
-    shock_labels = [f"{s['shock_pct']:+.0f}%" for s in scenarios]
-    call_values = [s['call_price'] for s in scenarios]
-    put_values = [s['put_price'] for s in scenarios]
+    if opt_lbl == 'call':
+        terminal_tex = r"V(S,T)=\max(S-K,\,0)"
+    else:
+        terminal_tex = r"V(S,T)=\max(K-S,\,0)"
 
-    fig_scenario = go.Figure()
-    fig_scenario.add_trace(go.Bar(
-        x=shock_labels, y=call_values, name='Call Price',
-        marker_color='#a6e3a1', text=[f"${v:.2f}" for v in call_values], textposition='outside',
+    if is_american:
+        boundary_tex = r"V(S,t)\ \ge\ \text{payoff}(S)\ \ \text{for all } t \le T \quad \text{(early exercise)}"
+    elif opt_lbl == 'call':
+        boundary_tex = r"V(0,t)=0,\quad V(S_{\max},t)=S_{\max}e^{-q\tau}-Ke^{-r\tau}"
+    else:
+        boundary_tex = r"V(0,t)=Ke^{-r\tau},\quad V(S_{\max},t)=0"
+
+    col_t, col_b = st.columns(2)
+    with col_t:
+        st.caption("TERMINAL")
+        st.latex(terminal_tex)
+    with col_b:
+        st.caption("BOUNDARY" + ("" if is_american else " (\u03c4 = T \u2212 t)"))
+        st.latex(boundary_tex)
+
+    st.caption(f"Solving for the **American {opt_lbl}**" if is_american
+               else f"Solving for the **European {opt_lbl}**")
+
+    # FD / MC / REFERENCE COMPARISON CARDS
+    st.markdown("## Numerical Solution")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown("**FINITE DIFFERENCE**")
+        st.metric("Price", f"${fd['price']:.4f}",
+                  help="Crank-Nicolson (European) or fully-implicit + Brennan-Schwartz (American).")
+        st.caption(f"{'implicit + Brennan-Schwartz' if is_american else 'Crank-Nicolson'} \u00b7 {fd_S_steps}\u00d7{fd_t_steps} grid")
+    with c2:
+        st.markdown("**MONTE CARLO**")
+        st.metric("Price", f"${mc['price']:.4f}",
+                  help="95% confidence interval from the simulation's standard error.")
+        st.caption(f"95% CI [{mc['ci_low']:.4f}, {mc['ci_high']:.4f}]")
+    with c3:
+        st.markdown("**" + ref_label.split(" (")[0].upper() + "**")
+        st.metric("Price", f"${ref_price:.4f}" if ref_price is not None else "n/a",
+                  help=ref_label)
+        st.caption(ref_label)
+    with c4:
+        diff = fd['price'] - ref_price
+        rel = (diff / ref_price * 100) if ref_price and abs(ref_price) > 1e-6 else float('nan')
+        outside_ci = not (mc['ci_low'] <= fd['price'] <= mc['ci_high'])
+        st.markdown("**FD \u2212 REFERENCE**")
+        st.metric("Difference", f"${diff:+.4f}",
+                   delta=f"{rel:+.2f}%" if rel == rel else None,
+                   help="FD price minus the reference price (closed-form for European, "
+                        "binomial tree for American).")
+        st.caption(":orange[outside FD-MC 95% CI]" if outside_ci else ":green[within FD-MC 95% CI]")
+
+    st.markdown("---")
+
+    # CHART 1: VALUE VS SPOT AT t=0
+    st.markdown("## Value vs Spot at t = 0")
+    st.caption("The finite-difference solution V(S, 0) across the whole grid, against the terminal payoff.")
+
+    fig_vs = go.Figure()
+    fig_vs.add_trace(go.Scatter(
+        x=fd['S_grid'], y=fd['payoff'], name='Payoff', mode='lines',
+        line=dict(color='#f38ba8', dash='dot'),
     ))
-    fig_scenario.add_trace(go.Bar(
-        x=shock_labels, y=put_values, name='Put Price',
-        marker_color='#f38ba8', text=[f"${v:.2f}" for v in put_values], textposition='outside',
+    fig_vs.add_trace(go.Scatter(
+        x=fd['S_grid'], y=fd['V0'], name='V(S, 0)', mode='lines',
+        line=dict(color='#89b4fa', width=2.5),
     ))
-    fig_scenario.update_layout(
-        barmode='group', xaxis_title='Stock Price Shock', yaxis_title='Option Price ($)',
+    fig_vs.add_trace(go.Scatter(
+        x=[stock_price], y=[fd['price']], name=f'S\u2080 = {stock_price:.2f}',
+        mode='markers', marker=dict(color='#fab387', size=11, symbol='diamond'),
+    ))
+    plot_max_x = min(fd['Smax'], strike_price * 2.5, stock_price * 2.5) or fd['Smax']
+    fig_vs.update_layout(
+        xaxis_title='Spot Price S', yaxis_title='Option Value ($)',
+        xaxis_range=[0, plot_max_x],
         height=420, margin=dict(t=20, b=20),
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
         **MOCHA_CHART_LAYOUT,
     )
-    fig_scenario.update_xaxes(gridcolor='#313244')
-    fig_scenario.update_yaxes(gridcolor='#313244')
-    st.plotly_chart(fig_scenario, width='stretch')
+    fig_vs.update_xaxes(gridcolor='#313244')
+    fig_vs.update_yaxes(gridcolor='#313244')
+    st.plotly_chart(fig_vs, width='stretch')
 
-    with st.expander("Stock prices for each scenario"):
-        scenario_df = pd.DataFrame(scenarios).rename(columns={
-            'shock_pct': 'Shock (%)', 'stock_price': 'Stock Price ($)',
-            'call_price': 'Call Price ($)', 'put_price': 'Put Price ($)',
-        })
-        st.dataframe(scenario_df, width='stretch', hide_index=True)
-    
+    # CHART 2: FD vs MC vs REFERENCE
+    st.markdown("## FD vs MC vs " + ref_label.split(" (")[0])
+    st.caption("Three independent pricing methods, cross-checked against each other.")
+
+    fig_cmp = go.Figure()
+    bar_names = ['Finite Difference', 'Monte Carlo', ref_label.split(" (")[0]]
+    bar_values = [fd['price'], mc['price'], ref_price]
+    bar_colors = ['#89b4fa', '#a6e3a1', '#cba6f7']
+    fig_cmp.add_trace(go.Bar(
+        x=bar_names, y=bar_values, marker_color=bar_colors,
+        text=[f"${v:.4f}" for v in bar_values], textposition='outside',
+        error_y=dict(
+            type='data', symmetric=False,
+            array=[0, mc['ci_high'] - mc['price'], 0],
+            arrayminus=[0, mc['price'] - mc['ci_low'], 0],
+            visible=True, color='#a6adc8',
+        ),
+    ))
+    fig_cmp.update_layout(
+        yaxis_title='Option Price ($)', height=420, margin=dict(t=20, b=20),
+        showlegend=False, **MOCHA_CHART_LAYOUT,
+    )
+    fig_cmp.update_xaxes(gridcolor='#313244')
+    fig_cmp.update_yaxes(gridcolor='#313244')
+    st.plotly_chart(fig_cmp, width='stretch')
+
+    st.markdown("---")
+
+    # PRICE SURFACE HEATMAP (moved out of the old Advanced Analysis tab,
+    # now sits right below the FD vs MC vs Reference comparison)
+    st.markdown("## Price Surface Heatmap")
+    st.caption("Option price across a range of stock prices and volatilities, "
+               "using the closed-form European model.")
+
+    if st.button("Generate 3D Surface"):
+        with st.spinner("Generating heatmap..."):
+            try:
+                sigma_range = np.linspace(max(0.01, volatility * 0.5) / 100, volatility * 1.5 / 100, 15)
+                S_range_heat = np.linspace(stock_price * 0.8, stock_price * 1.2, 15)
+
+                call_surface, put_surface = create_price_surface_heatmap(
+                    stock_price, strike_price, days_to_expiry / 365,
+                    risk_free_rate / 100, sigma_range, S_range_heat,
+                    q=dividend_yield / 100
+                )
+
+                fig = go.Figure(data=[go.Surface(
+                    x=S_range_heat,
+                    y=sigma_range * 100,
+                    z=call_surface,
+                    colorscale='Viridis',
+                    name='Call Prices'
+                )])
+
+                fig.update_layout(
+                    title='Option Price Surface',
+                    scene=dict(
+                        xaxis_title='Stock Price ($)',
+                        yaxis_title='Volatility (%)',
+                        zaxis_title='Option Price ($)',
+                        xaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
+                        yaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
+                        zaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
+                    ),
+                    height=600,
+                    margin=dict(l=0, r=0, b=0, t=40),
+                    **MOCHA_CHART_LAYOUT,
+                )
+
+                st.plotly_chart(fig, width='stretch')
+            except Exception as e:
+                st.error(f"Error generating surface: {str(e)}")
+
     st.markdown("---")
     
     # TABS
-    tab1, tab3, tab4, tab5 = st.tabs([
+    st.caption("The tabs below (Greeks, Heat Map, History) run on the "
+               "closed-form **European** Black-Scholes model regardless of the Exercise Style "
+               "selected in the sidebar \u2014 American options have no closed-form Greeks, "
+               "since those require differentiating the numerical PDE solution.")
+    tab_greeks, tab_heatmap, tab_history = st.tabs([
         "Greeks Analysis",
         "Heat Map",
-        "Advanced Analysis",
         "History and Export"
     ])
     
     # TAB 1: GREEKS
-    with tab1:
+    with tab_greeks:
         st.markdown("### Option Greeks - Risk Metrics")
         
         greeks = results['greeks']
@@ -458,7 +653,7 @@ if 'results' in st.session_state:
             )
     
     # TAB 3: SIMPLE HEATMAP
-    with tab3:
+    with tab_heatmap:
         st.markdown("### Heatmap")
         
         S_matrix = np.linspace(stock_price * 0.9, stock_price * 1.1, 7)
@@ -493,110 +688,8 @@ if 'results' in st.session_state:
         )
         st.plotly_chart(fig_heat, width='stretch')
     
-    # TAB 4: ADVANCED ANALYSIS
-    with tab4:
-        st.markdown("### Advanced Analysis Tools")
-
-        with st.expander("Understanding Volatility Smile"):
-            st.markdown("""
-            **Black-Scholes assumes constant volatility** across all strikes and maturities. The market disagrees.
-    
-            When you back out implied volatility from real market prices across different strikes,
-            you get a U-shaped curve, not a flat line:
-    
-            - **Deep ITM options** → Higher IV
-            - **ATM options** → Lowest IV
-            - **Deep OTM options** → Higher IV
-    
-            This curvature is the **volatility smile**. For equity indices like the S&P 500,
-            it becomes a **volatility skew** downside strikes carry systematically higher IV
-            because traders pay a premium for crash protection.
-    
-            **What this means practically:**
-            The 3D surface below shows IV computed independently at each strike using Black-Scholes inversion.
-            If the model were perfect, the surface would be completely flat.
-            The curvature you see is the market telling you Black-Scholes is incomplete.
-            Real desks use Heston, SABR, or local volatility models to capture this structure.
-            Understanding *why* the smile exists is more valuable than the smile itself.
-            """)
-    
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("#### Implied Volatility Calculator")
-            
-            market_price_input = st.number_input(
-                "Observed Market Price ($)",
-                min_value=0.01,
-                value=max(0.01, results['call_price']),
-                step=0.01
-            )
-            
-            option_type_iv = st.radio("Option Type", ['call', 'put'])
-            
-            if st.button("Calculate Implied Volatility"):
-                with st.spinner("Calculating..."):
-                    iv = calculate_implied_volatility(
-                        market_price_input,
-                        stock_price,
-                        strike_price,
-                        days_to_expiry / 365,
-                        risk_free_rate / 100,
-                        option_type_iv,
-                        dividend_yield / 100
-                    )
-                    
-                    if iv:
-                        st.success(f"**Implied Volatility:** {iv*100:.2f}%")
-                        st.metric("IV vs Current Vol", f"{iv*100:.2f}%", 
-                                delta=f"{(iv*100 - volatility):.2f}%")
-                    else:
-                        st.error("Could not calculate IV. Check inputs.")
-        
-        with col2:
-            st.markdown("#### Price Surface Heatmap")
-            
-            if st.button("Generate 3D Surface"):
-                with st.spinner("Generating heatmap..."):
-                    try:
-                        sigma_range = np.linspace(max(0.01, volatility*0.5)/100, volatility*1.5/100, 15)
-                        S_range_heat = np.linspace(stock_price*0.8, stock_price*1.2, 15)
-                        
-                        call_surface, put_surface = create_price_surface_heatmap(
-                            stock_price, strike_price, days_to_expiry/365,
-                            risk_free_rate/100, sigma_range, S_range_heat,
-                            q=dividend_yield/100
-                        )
-                        
-                        fig = go.Figure(data=[go.Surface(
-                            x=S_range_heat,
-                            y=sigma_range*100,
-                            z=call_surface,
-                            colorscale='Viridis',
-                            name='Call Prices'
-                        )])
-                        
-                        fig.update_layout(
-                            title='Option Price Surface',
-                            scene=dict(
-                                xaxis_title='Stock Price ($)',
-                                yaxis_title='Volatility (%)',
-                                zaxis_title='Option Price ($)',
-                                xaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
-                                yaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
-                                zaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
-                            ),
-                            height=600,
-                            margin=dict(l=0, r=0, b=0, t=40),
-                            **MOCHA_CHART_LAYOUT,
-                        )
-                        
-                        st.plotly_chart(fig, width='stretch')
-                    except Exception as e:
-                        st.error(f"Error generating surface: {str(e)}")
-    
-    # TAB 5: HISTORY & EXPORT
-    with tab5:
+    # TAB 3: HISTORY & EXPORT
+    with tab_history:
         st.markdown("### Calculation History")
         
         if st.session_state.calculation_history:
@@ -648,8 +741,8 @@ if 'results' in st.session_state:
 st.markdown("---")
 st.markdown("""
     <div style='text-align: center; color: #666; padding: 2rem 0;'>
-        <h3>Options Pricing Analyzer</h3>
-        <p><b>Black-Scholes Model • European Options</b></p>
+        <h3>Black-Scholes PDE Solver</h3>
+        <p><b>Finite Differences • Monte Carlo • Closed-Form — European &amp; American Options</b></p>
         <p style='font-size: 0.9em; margin-top: 1rem;'>
             Created by <b>Nattawut Boonnoon</b><br>
             <a href="https://www.linkedin.com/in/nattawut-bn" target="_blank" style="color: #0077b5; text-decoration: none;">

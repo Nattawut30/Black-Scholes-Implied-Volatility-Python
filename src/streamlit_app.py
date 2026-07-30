@@ -48,24 +48,24 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
     <style>
-    .main-header { font-size: 3rem; font-weight: 700; background: linear-gradient(120deg, #89b4fa, #cba6f7); -webkit-background-clip: text; -webkit-fill-color: transparent; text-align: center; padding: 1rem 0; margin-bottom: 0.5rem; }
-    .sub-header { font-size: 1.3rem; color: #a6adc8; text-align: center; margin-bottom: 2rem; }
-    .stMetric { background-color: #313244; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(17,17,27,0.4); }
-    .success-box { background-color: #313244; border-left: 4px solid #a6e3a1; color: #cdd6f4; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
-    .info-box { background-color: #313244; border-left: 4px solid #89b4fa; color: #cdd6f4; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
-    .warning-box { background-color: #313244; border-left: 4px solid #fab387; color: #cdd6f4; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    .main-header { font-size: 3rem; font-weight: 700; background: linear-gradient(120deg, #8caaee, #ca9ee6); -webkit-background-clip: text; -webkit-fill-color: transparent; text-align: center; padding: 1rem 0; margin-bottom: 0.5rem; }
+    .sub-header { font-size: 1.3rem; color: #a5adce; text-align: center; margin-bottom: 2rem; }
+    .stMetric { background-color: #414559; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(17,17,27,0.4); }
+    .success-box { background-color: #414559; border-left: 4px solid #a6d189; color: #c6d0f5; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    .info-box { background-color: #414559; border-left: 4px solid #8caaee; color: #c6d0f5; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    .warning-box { background-color: #414559; border-left: 4px solid #ef9f76; color: #c6d0f5; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
     </style>
 """, unsafe_allow_html=True)
 
 if 'calculation_history' not in st.session_state:
     st.session_state.calculation_history = []
 
-# Catppuccin Mocha palette for Plotly charts (Plotly figures render in their own canvas
+# Catppuccin Frappé palette for Plotly charts (Plotly figures render in their own canvas
 # and do NOT automatically pick up Streamlit's theme, so we apply it explicitly here).
 MOCHA_CHART_LAYOUT = dict(
-    paper_bgcolor='#1e1e2e',
-    plot_bgcolor='#1e1e2e',
-    font=dict(color='#cdd6f4'),
+    paper_bgcolor='#303446',
+    plot_bgcolor='#303446',
+    font=dict(color='#c6d0f5'),
 )
 
 def create_price_surface_heatmap(S, K, T, r, sigma_range, S_range, q=0.0):
@@ -404,15 +404,15 @@ if 'results' in st.session_state:
     fig_vs = go.Figure()
     fig_vs.add_trace(go.Scatter(
         x=fd['S_grid'], y=fd['payoff'], name='Payoff', mode='lines',
-        line=dict(color='#f38ba8', dash='dot'),
+        line=dict(color='#e78284', dash='dot'),
     ))
     fig_vs.add_trace(go.Scatter(
         x=fd['S_grid'], y=fd['V0'], name='V(S, 0)', mode='lines',
-        line=dict(color='#89b4fa', width=2.5),
+        line=dict(color='#8caaee', width=2.5),
     ))
     fig_vs.add_trace(go.Scatter(
         x=[stock_price], y=[fd['price']], name=f'S\u2080 = {stock_price:.2f}',
-        mode='markers', marker=dict(color='#fab387', size=11, symbol='diamond'),
+        mode='markers', marker=dict(color='#ef9f76', size=11, symbol='diamond'),
     ))
     plot_max_x = min(fd['Smax'], strike_price * 2.5, stock_price * 2.5) or fd['Smax']
     fig_vs.update_layout(
@@ -422,8 +422,8 @@ if 'results' in st.session_state:
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
         **MOCHA_CHART_LAYOUT,
     )
-    fig_vs.update_xaxes(gridcolor='#313244')
-    fig_vs.update_yaxes(gridcolor='#313244')
+    fig_vs.update_xaxes(gridcolor='#414559')
+    fig_vs.update_yaxes(gridcolor='#414559')
     st.plotly_chart(fig_vs, width='stretch')
 
     # CHART 2: FD vs MC vs REFERENCE
@@ -433,7 +433,7 @@ if 'results' in st.session_state:
     fig_cmp = go.Figure()
     bar_names = ['Finite Difference', 'Monte Carlo', ref_label.split(" (")[0]]
     bar_values = [fd['price'], mc['price'], ref_price]
-    bar_colors = ['#89b4fa', '#a6e3a1', '#cba6f7']
+    bar_colors = ['#8caaee', '#a6d189', '#ca9ee6']
     fig_cmp.add_trace(go.Bar(
         x=bar_names, y=bar_values, marker_color=bar_colors,
         text=[f"${v:.4f}" for v in bar_values], textposition='outside',
@@ -441,15 +441,15 @@ if 'results' in st.session_state:
             type='data', symmetric=False,
             array=[0, mc['ci_high'] - mc['price'], 0],
             arrayminus=[0, mc['price'] - mc['ci_low'], 0],
-            visible=True, color='#a6adc8',
+            visible=True, color='#a5adce',
         ),
     ))
     fig_cmp.update_layout(
         yaxis_title='Option Price ($)', height=420, margin=dict(t=20, b=20),
         showlegend=False, **MOCHA_CHART_LAYOUT,
     )
-    fig_cmp.update_xaxes(gridcolor='#313244')
-    fig_cmp.update_yaxes(gridcolor='#313244')
+    fig_cmp.update_xaxes(gridcolor='#414559')
+    fig_cmp.update_yaxes(gridcolor='#414559')
     st.plotly_chart(fig_cmp, width='stretch')
 
     st.markdown("---")
@@ -486,9 +486,9 @@ if 'results' in st.session_state:
                         xaxis_title='Stock Price ($)',
                         yaxis_title='Volatility (%)',
                         zaxis_title='Option Price ($)',
-                        xaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
-                        yaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
-                        zaxis=dict(backgroundcolor='#1e1e2e', gridcolor='#45475a', color='#cdd6f4'),
+                        xaxis=dict(backgroundcolor='#303446', gridcolor='#51576d', color='#c6d0f5'),
+                        yaxis=dict(backgroundcolor='#303446', gridcolor='#51576d', color='#c6d0f5'),
+                        zaxis=dict(backgroundcolor='#303446', gridcolor='#51576d', color='#c6d0f5'),
                     ),
                     height=600,
                     margin=dict(l=0, r=0, b=0, t=40),
@@ -549,15 +549,15 @@ if 'results' in st.session_state:
                 value=greeks['call_delta'],
                 domain={'x': [0, 1], 'y': [0, 1]},
                 title={'text': "Call Delta"},
-                number={'font': {'color': '#cdd6f4'}},
-                gauge={'axis': {'range': [0, 1], 'tickcolor': '#cdd6f4'},
-                      'bar': {'color': "#a6e3a1"},
-                      'bgcolor': '#1e1e2e',
+                number={'font': {'color': '#c6d0f5'}},
+                gauge={'axis': {'range': [0, 1], 'tickcolor': '#c6d0f5'},
+                      'bar': {'color': "#a6d189"},
+                      'bgcolor': '#303446',
                       'steps': [
-                          {'range': [0, 0.3], 'color': "#313244"},
-                          {'range': [0.3, 0.7], 'color': "#45475a"},
-                          {'range': [0.7, 1], 'color': "#585b70"}],
-                      'threshold': {'line': {'color': "#fab387", 'width': 4},
+                          {'range': [0, 0.3], 'color': "#414559"},
+                          {'range': [0.3, 0.7], 'color': "#51576d"},
+                          {'range': [0.7, 1], 'color': "#626880"}],
+                      'threshold': {'line': {'color': "#ef9f76", 'width': 4},
                                   'thickness': 0.75,
                                   'value': 0.5}}))
             fig_delta_call.update_layout(height=250, **MOCHA_CHART_LAYOUT)
@@ -592,15 +592,15 @@ if 'results' in st.session_state:
                 value=abs(greeks['put_delta']),
                 domain={'x': [0, 1], 'y': [0, 1]},
                 title={'text': "Put Delta (Absolute)"},
-                number={'font': {'color': '#cdd6f4'}},
-                gauge={'axis': {'range': [0, 1], 'tickcolor': '#cdd6f4'},
-                      'bar': {'color': "#f38ba8"},
-                      'bgcolor': '#1e1e2e',
+                number={'font': {'color': '#c6d0f5'}},
+                gauge={'axis': {'range': [0, 1], 'tickcolor': '#c6d0f5'},
+                      'bar': {'color': "#e78284"},
+                      'bgcolor': '#303446',
                       'steps': [
-                          {'range': [0, 0.3], 'color': "#313244"},
-                          {'range': [0.3, 0.7], 'color': "#45475a"},
-                          {'range': [0.7, 1], 'color': "#585b70"}],
-                      'threshold': {'line': {'color': "#fab387", 'width': 4},
+                          {'range': [0, 0.3], 'color': "#414559"},
+                          {'range': [0.3, 0.7], 'color': "#51576d"},
+                          {'range': [0.7, 1], 'color': "#626880"}],
+                      'threshold': {'line': {'color': "#ef9f76", 'width': 4},
                                   'thickness': 0.75,
                                   'value': 0.5}}))
             fig_delta_put.update_layout(height=250, **MOCHA_CHART_LAYOUT)

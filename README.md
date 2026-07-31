@@ -13,13 +13,6 @@ Here: https://nattawut-blsm.streamlit.app <br>
 
 Presentation Slides: [Click](https://gamma.app/docs/Black-Scholes-Implied-Volatility-By-Nattawut-B-la8qpqrj0j6scxi)
 
-Updated: July 2026 <br>
-- Added a finite-difference PDE solver (Crank-Nicolson + Rannacher start-up for European; fully implicit + Brennan-Schwartz for American early exercise), a Monte Carlo engine (exact terminal simulation for European, Longstaff-Schwartz for American), and a Cox-Ross-Rubinstein binomial tree as an independent American reference.
-- Added American option support (Call/Put) alongside the existing closed-form European model.
-- Resolved fault memory issues related to SciPy and Streamlit.
-- Updated the project on the master/main branch and resolved CI problems.
-- Migrated dependency management to Poetry.
-
 This is my options pricing project that combines educational clarity with real-world numerical methods. It prices European options in closed form (Black-Scholes) and prices both European and American options numerically via finite differences and Monte Carlo, cross-checking all three methods against each other on every calculation. It also includes a Greeks dashboard, a price-surface heat map, and calculation history/export.
 
 # <p align="center">What is the Black-Scholes model? <p/>
@@ -66,7 +59,7 @@ subject to the terminal payoff at expiry and, for American options, the constrai
 - `plotly` - Interactive charts
 - `pyarrow` - Data processing
 
-**Academic Papers:**
+**Academic Papers & References:**
 - Black, F., & Scholes, M. (1973). *"The Pricing of Options and Corporate Liabilities"*
 - Merton, R. C. (1973). *"Theory of Rational Option Pricing"*
 - Brennan, M. J., & Schwartz, E. S. (1977). *"The Valuation of American Put Options"*

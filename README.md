@@ -21,34 +21,30 @@ The Black-Scholes, or Black-Scholes-Merton model is a mathematical model that de
 The model's fundamental objective is to hedge the option by purchasing and selling the underlying asset in a precise pattern to remove risk. This type of hedging is known as "constantly modified delta hedging" and forms the foundation of more complex hedging strategies utilized by investment firms and hedge funds.
 
 Call Options Price:
-`````bash
-C = S₀·N(d₁) - K·e^(-rT)·N(d₂)
-`````
+$$
+C = S_0 e^{-qT} N(d_1) - K e^{-rT} N(d_2)
+$$
+
 Put Options Price:
-`````bash
-P = K·e^(-rT)·N(-d₂) - S₀·N(-d₁)
-`````
+$$
+P = K e^{-rT} N(-d_2) - S_0 e^{-qT} N(-d_1)
+$$
+
 Where:
-`````bash
-d₁ = [ln(S₀/K) + (r - q + σ²/2)T] / (σ√T)
-d₂ = d₁ - σ√T
-`````
+$$
+d_1 = \frac{\ln(S_0/K) + \left(r - q + \frac{\sigma^2}{2}\right)T}{\sigma\sqrt{T}}, \qquad d_2 = d_1 - \sigma\sqrt{T}
+$$
+
+The PDE:
+$$
+\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + (r-q)S\frac{\partial V}{\partial S} - rV = 0
+$$
+
 Parameters:
 
-S₀ = Current stock price <br>
-K = Strike price <br>
-T = Time to expiration (years) <br>
-r = Risk-free interest rate <br>
-σ = Volatility (annual) <br>
-N(x) = Cumulative normal distribution <br>
-
-Closed-form pricing like this only exists for **European** options (exercisable at expiry only). **American** options (exercisable any time up to expiry) have no closed-form price, so this project solves the same Black-Scholes PDE numerically instead:
-
-`````bash
-∂V/∂t + ½σ²S²(∂²V/∂S²) + (r-q)S(∂V/∂S) - rV = 0
-`````
-
-subject to the terminal payoff at expiry and, for American options, the constraint that the option is always worth at least its immediate exercise value. Three independent methods are computed for every price shown in the app: finite differences, Monte Carlo, and a closed-form/binomial-tree reference. so the numbers can be cross-checked against each other rather than trusted blindly.
+$S_0$ = Current stock price
+$K$ = Strike price
+$N(x)$ = Cumulative normal distribution
 
 # <p align="center">Acknowledgments<p/>
 
@@ -66,4 +62,4 @@ subject to the terminal payoff at expiry and, for American options, the constrai
 - Cox, J. C., Ross, S. A., & Rubinstein, M. (1979). *"Option Pricing: A Simplified Approach"*
 - Rannacher, R. (1984). *"Finite Element Solution of Diffusion Problems with Irregular Data"*
 - Longstaff, F. A., & Schwartz, E. S. (2001). *"Valuing American Options by Simulation: A Simple Least-Squares Approach"*
-- Paolucci, R., Quant Guild., (2026). *"Numerical methods design cross-checked: Quantitative Researcher"*
+- Paolucci, R., Quant Guild., (2026). *"Numerical methods design cross-checked."*

@@ -21,30 +21,38 @@ The Black-Scholes, or Black-Scholes-Merton model is a mathematical model that de
 The model's fundamental objective is to hedge the option by purchasing and selling the underlying asset in a precise pattern to remove risk. This type of hedging is known as "constantly modified delta hedging" and forms the foundation of more complex hedging strategies utilized by investment firms and hedge funds.
 
 Call Options Price:
+
 $$
 C = S_0 e^{-qT} N(d_1) - K e^{-rT} N(d_2)
 $$
 
 Put Options Price:
+
 $$
 P = K e^{-rT} N(-d_2) - S_0 e^{-qT} N(-d_1)
 $$
 
 Where:
+
 $$
 d_1 = \frac{\ln(S_0/K) + \left(r - q + \frac{\sigma^2}{2}\right)T}{\sigma\sqrt{T}}, \qquad d_2 = d_1 - \sigma\sqrt{T}
 $$
 
 The PDE:
+
 $$
 \frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + (r-q)S\frac{\partial V}{\partial S} - rV = 0
 $$
 
 Parameters:
 
-$S_0$ = Current stock price
-$K$ = Strike price
-$N(x)$ = Cumulative normal distribution
+$S_0$ = Current stock price <br>
+$K$ = Strike price <br>
+$T$ = Time to expiration (years) <br>
+$r$ = Risk-free interest rate <br>
+$q$ = Dividend yield <br>
+$\sigma$ = Volatility (annual) <br>
+$N(x)$ = Cumulative normal distribution <br>
 
 # <p align="center">Acknowledgments<p/>
 

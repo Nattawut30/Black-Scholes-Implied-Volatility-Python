@@ -2,7 +2,7 @@ name: Streamlit Heartbeat Service
 
 on:
   schedule:
-    - cron: '17 */3 * * *'  # รันทุก 6 ชั่วโมง; หลบช่วงต้นชั่วโมงที่ GitHub อาจหน่วง
+    - cron: '17 */8 * * *'  # รันทุก 8 ชั่วโมง; หลบช่วงต้นชั่วโมงที่ GitHub อาจหน่วง
   workflow_dispatch:        # กดรันเองจากหน้า GitHub ได้ด้วย
 
 jobs:
@@ -27,9 +27,21 @@ jobs:
               const browser = await chromium.launch();
               const page = await browser.newPage();
               console.log('Opening app...');
-              await page.goto('https://nattawut-blsm.streamlit.app', { waitUntil: 'networkidle', timeout: 60000 });
-              console.log('Page loaded, holding session for 15s...');
-              await page.waitForTimeout(15000);
+              await page.goto('https://nattawut-blsm.streamlit.app', { waitUntil: 'load', timeout: 60000 });
+
+              const wakeButton = page.getByText('Yes, get this app back up!');
+              const isSleeping = await wakeButton.isVisible({ timeout: 5000 }).catch(() => false);
+
+              if (isSleeping) {
+                console.log('App is asleep - clicking wake button...');
+                await wakeButton.click();
+                console.log('Clicked. Waiting for app to boot (this can take 30-60s)...');
+                await page.waitForTimeout(45000);
+              } else {
+                console.log('App is already awake - holding session for 15s...');
+                await page.waitForTimeout(15000);
+              }
+
               await browser.close();
               console.log('Done.');
             })();

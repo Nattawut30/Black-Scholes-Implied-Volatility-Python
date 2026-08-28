@@ -2,7 +2,7 @@ name: Streamlit Heartbeat Service
 
 on:
   schedule:
-    - cron: '17 */6 * * *'  # รันทุก 6 ชั่วโมง; หลบช่วงต้นชั่วโมงที่ GitHub อาจหน่วง
+    - cron: '17 */3 * * *'  # รันทุก 6 ชั่วโมง; หลบช่วงต้นชั่วโมงที่ GitHub อาจหน่วง
   workflow_dispatch:        # กดรันเองจากหน้า GitHub ได้ด้วย
 
 jobs:
